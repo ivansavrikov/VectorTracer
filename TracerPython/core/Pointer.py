@@ -1,6 +1,7 @@
 from typing import Tuple
 from PIL import Image
 from enum import Enum
+from core.Point import Point
 
 class Direction(Enum): #Directions
     NONE = 'None'
@@ -15,48 +16,47 @@ class Direction(Enum): #Directions
 
 class Pointer:
 
-    def pixel_is_possible(self, xy: Tuple[int, int]) -> bool:
-        x, y = xy
+    def pixel_is_possible(self, point: Point) -> bool:
         width, height = self.image.size
-        if (0 <= x < width) and (0 <= y < height): #Пиксель в пределах изображения
-            if self.image.getpixel(xy) <= 1: #Яркость пикселя низкая (черный цвет)
+        if (0 <= point.x < width) and (0 <= point.y < height): #Пиксель в пределах изображения
+            if self.image.getpixel((point.x, point.y)) <= 5: #Яркость пикселя низкая (черный цвет)
                 return True
             else:
                 return False
         else:
             return False
 
-    def move(self, xy: Tuple[int, int]) -> bool:
-        if self.pixel_is_possible(xy):
-            self.x, self.y = xy
+    def move(self, point: Point) -> bool:
+        if self.pixel_is_possible(point):
+            self.pos = point
             self.moves_count += 1
             return True
         else:
             return False
 
     def move_left(self) -> Tuple[bool, Direction]:
-        return (self.move((self.x-1, self.y)), Direction.LEFT)
+        return (self.move(Point(self.pos.x-1, self.pos.y)), Direction.LEFT)
 
     def move_up_left(self) -> Tuple[bool, Direction]:
-        return (self.move((self.x-1, self.y-1)), Direction.UP_LEFT)
+        return (self.move(Point(self.pos.x-1, self.pos.y-1)), Direction.UP_LEFT)
 
     def move_up(self) -> Tuple[bool, Direction]:
-        return (self.move((self.x, self.y-1)), Direction.UP)
+        return (self.move(Point(self.pos.x, self.pos.y-1)), Direction.UP)
 
     def move_up_right(self) -> Tuple[bool, Direction]:
-        return (self.move((self.x+1, self.y-1)), Direction.UP_RIGHT)
+        return (self.move(Point(self.pos.x+1, self.pos.y-1)), Direction.UP_RIGHT)
 
     def move_right(self) -> Tuple[bool, Direction]:
-        return (self.move((self.x+1, self.y)), Direction.RIGHT)
+        return (self.move(Point(self.pos.x+1, self.pos.y)), Direction.RIGHT)
     
     def move_down_right(self) -> Tuple[bool, Direction]:
-        return (self.move((self.x+1, self.y+1)), Direction.DOWN_RIGHT)
+        return (self.move(Point(self.pos.x+1, self.pos.y+1)), Direction.DOWN_RIGHT)
 
     def move_down(self) -> Tuple[bool, Direction]:
-        return (self.move((self.x, self.y+1)), Direction.DOWN)
+        return (self.move(Point(self.pos.x, self.pos.y+1)), Direction.DOWN)
 
     def move_down_left(self) -> Tuple[bool, Direction]:
-        return (self.move((self.x-1, self.y+1)), Direction.DOWN_LEFT)
+        return (self.move(Point(self.pos.x-1, self.pos.y+1)), Direction.DOWN_LEFT)
 
     def arrange_move_variants(self):
         match self.arrow:
@@ -86,19 +86,17 @@ class Pointer:
             self.arrow = direction
             self.arrow_is_changed = True
             self.arrange_move_variants()
-            # print(f'Направление изменилось {self.arrow.value}')
 
-    def calculate_start_position(self, xy: Tuple[int, int]): #исключения продумать
+    def calculate_start_position(self, start: Point): #исключения продумать
         width, height = self.image.size
-        start_x, start_y = xy
         is_break = False
-        for y in range(start_y, height):
+        for y in range(start.y, height):
             if is_break == True:
                 break
-            for x in range(start_x, width):
-                if self.pixel_is_possible((x, y)):
-                    self.x = x
-                    self.y = y
+            for x in range(start.x, width):
+                point = Point(x, y)
+                if self.pixel_is_possible(point):
+                    self.pos = point
                     self.rotate_arrow(Direction.RIGHT)
                     is_break = True
                     break
@@ -112,10 +110,9 @@ class Pointer:
 
     def __init__(self, image: Image):
         self.image: Image = image.convert('L')
-        self.x: int
-        self.y: int
+        self.pos: Point = Point(0, 0)
         self.arrow: Direction = Direction.NONE
         self.arrow_is_changed: bool = True
         self.move_variants: list #Лист с функциями движения в нужном порядке
         self.moves_count = 0
-        self.calculate_start_position((0,0)) #начинаем двигаться с нулевых координат
+        self.calculate_start_position(self.pos) #начинаем двигаться с нулевых координат
