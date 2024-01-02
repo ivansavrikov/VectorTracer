@@ -49,7 +49,7 @@ class BuilderSVG:
         scale = 2
         svg_code = f"""<svg width="{width*scale}" height="{height*scale}" viewBox="0 0 {width*scale} {height*scale}" xmlns="http://www.w3.org/2000/svg">
         <g transform="scale({scale})">
-            <path d="\n\t\t\tM {first.x} {first.y}{line_or_curve}{self.path_data}Z"\n\t\t\tfill="red" stroke="red" stroke-width="1" stroke-linejoin="round"/>
+            <path d="\n\t\t\tM {first.x} {first.y} {line_or_curve}{self.path_data}Z"\n\t\t\tfill="black" stroke="none" stroke-width="1" stroke-linejoin="round"/>
         </g>
     </svg>"""
         return svg_code

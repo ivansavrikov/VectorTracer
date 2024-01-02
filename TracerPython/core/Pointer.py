@@ -2,6 +2,7 @@ from typing import Tuple
 from PIL import Image
 from enum import Enum
 from core.Point import Point
+from core.ImagePreparer import ImagePreparer
 
 class Direction(Enum): #Directions
     NONE = 'None'
@@ -19,7 +20,7 @@ class Pointer:
     def pixel_is_possible(self, point: Point) -> bool:
         width, height = self.image.size
         if (0 <= point.x < width) and (0 <= point.y < height): #Пиксель в пределах изображения
-            if self.image.getpixel((point.x, point.y)) <= 5: #Яркость пикселя низкая (черный цвет)
+            if self.image.getpixel((point.x, point.y)) <= 2: #Яркость пикселя низкая (черный цвет)
                 return True
             else:
                 return False
@@ -109,7 +110,7 @@ class Pointer:
                 break
 
     def __init__(self, image: Image):
-        self.image: Image = image.convert('L')
+        self.image: Image = ImagePreparer.prepare(image)
         self.pos: Point = Point(0, 0)
         self.arrow: Direction = Direction.NONE
         self.arrow_is_changed: bool = True
