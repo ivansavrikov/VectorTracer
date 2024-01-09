@@ -27,7 +27,7 @@ async def trace(file: UploadFile = File(...)):
     
     image = Image.open(BytesIO(contents))
     builder = BuilderSVG()
-    svg_code = builder.raster_to_svg(image)
+    svg_code = builder.trace(image)
     
     svg_data = BytesIO()
     svg_data.write(svg_code.encode("utf-8"))

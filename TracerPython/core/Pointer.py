@@ -1,26 +1,23 @@
 from typing import Tuple
 from PIL import Image
-from enum import Enum
 from core.Point import Point
 from core.ImagePreparer import ImagePreparer
+from core.DirectionEnum import Direction
 
-class Direction(Enum): #Directions
-    NONE = 'None'
-    RIGHT = 'Right'
-    DOWN_RIGHT = 'Down_Right'
-    DOWN = 'Down'
-    DOWN_LEFT = 'Down_Left'
-    LEFT = 'Left'
-    UP_LEFT = 'Up_Left'
-    UP = 'Up'
-    UP_RIGHT = 'Up_Right'
 
 class Pointer:
+    '''фактически Y растет вниз, X вправо, но названия даны в человеческом представлении'''
 
-    def pixel_is_possible(self, point: Point) -> bool:
+    def pixel_is_inside_image(self, point: Point) -> bool:
         width, height = self.image.size
         if (0 <= point.x < width) and (0 <= point.y < height): #Пиксель в пределах изображения
-            if self.image.getpixel((point.x, point.y)) <= 2: #Яркость пикселя низкая (черный цвет)
+            return True
+        else:
+            return False
+
+    def pixel_is_possible(self, point: Point) -> bool:
+        if self.pixel_is_inside_image(point):
+            if self.image.getpixel((point.x, point.y)) <= 100: #Яркость пикселя низкая (черный цвет)
                 return True
             else:
                 return False
@@ -62,21 +59,84 @@ class Pointer:
     def arrange_move_variants(self):
         match self.arrow:
             case Direction.RIGHT:
-                self.move_variants = [self.move_up, self.move_up_right, self.move_right, self.move_down_right, self.move_down, self.move_down_left, self.move_left, self.move_up_left]
+                self.move_variants = [self.move_up, 
+                                      self.move_up_right, 
+                                      self.move_right, 
+                                      self.move_down_right, 
+                                      self.move_down, 
+                                      self.move_down_left, 
+                                      self.move_left, 
+                                      self.move_up_left]
+                
             case Direction.DOWN_RIGHT:
-                self.move_variants = [self.move_up_right, self.move_right, self.move_down_right, self.move_down, self.move_down_left, self.move_left, self.move_up_left, self.move_up]
+                self.move_variants = [self.move_up_right, 
+                                      self.move_right, 
+                                      self.move_down_right, 
+                                      self.move_down, 
+                                      self.move_down_left, 
+                                      self.move_left, 
+                                      self.move_up_left, 
+                                      self.move_up]
+            
             case Direction.DOWN:
-                self.move_variants = [self.move_right, self.move_down_right, self.move_down, self.move_down_left, self.move_left, self.move_up_left, self.move_up, self.move_up_right]
+                self.move_variants = [self.move_right, 
+                                      self.move_down_right, 
+                                      self.move_down, 
+                                      self.move_down_left, 
+                                      self.move_left, 
+                                      self.move_up_left, 
+                                      self.move_up, 
+                                      self.move_up_right]
+            
             case Direction.DOWN_LEFT:
-                self.move_variants = [self.move_down_right, self.move_down, self.move_down_left, self.move_left, self.move_up_left, self.move_up, self.move_up_right, self.move_right]
+                self.move_variants = [self.move_down_right, 
+                                      self.move_down, 
+                                      self.move_down_left, 
+                                      self.move_left, 
+                                      self.move_up_left, 
+                                      self.move_up, 
+                                      self.move_up_right, 
+                                      self.move_right]
+            
             case Direction.LEFT:
-                self.move_variants = [self.move_down, self.move_down_left, self.move_left, self.move_up_left, self.move_up, self.move_up_right, self.move_right, self.move_down_right]
+                self.move_variants = [self.move_down, 
+                                      self.move_down_left, 
+                                      self.move_left, 
+                                      self.move_up_left, 
+                                      self.move_up, 
+                                      self.move_up_right, 
+                                      self.move_right, 
+                                      self.move_down_right]
+            
             case Direction.UP_LEFT:
-                self.move_variants = [self.move_down_left, self.move_left, self.move_up_left, self.move_up, self.move_up_right, self.move_right, self.move_down_right, self.move_down]
+                self.move_variants = [self.move_down_left, 
+                                      self.move_left, 
+                                      self.move_up_left, 
+                                      self.move_up, 
+                                      self.move_up_right, 
+                                      self.move_right, 
+                                      self.move_down_right, 
+                                      self.move_down]
+            
             case Direction.UP:
-                self.move_variants = [self.move_left, self.move_up_left, self.move_up, self.move_up_right, self.move_right, self.move_down_right, self.move_down, self.move_down_left]
+                self.move_variants = [self.move_left, 
+                                      self.move_up_left, 
+                                      self.move_up, 
+                                      self.move_up_right, 
+                                      self.move_right, 
+                                      self.move_down_right, 
+                                      self.move_down, 
+                                      self.move_down_left]
+            
             case Direction.UP_RIGHT:
-                self.move_variants = [self.move_up_left, self.move_up, self.move_up_right, self.move_right, self.move_down_right, self.move_down, self.move_down_left, self.move_left]
+                self.move_variants = [self.move_up_left, 
+                                      self.move_up, 
+                                      self.move_up_right, 
+                                      self.move_right, 
+                                      self.move_down_right, 
+                                      self.move_down, 
+                                      self.move_down_left, 
+                                      self.move_left]
             case Direction.NONE:
                 pass #сделать исключение или пустой список
 
@@ -89,6 +149,8 @@ class Pointer:
             self.arrange_move_variants()
 
     def calculate_start_position(self, start: Point): #исключения продумать
+        '''Вычисляет начальную точку контура фигуры'''
+
         width, height = self.image.size
         is_break = False
         for y in range(start.y, height):
@@ -98,7 +160,7 @@ class Pointer:
                 point = Point(x, y)
                 if self.pixel_is_possible(point):
                     self.pos = point
-                    self.rotate_arrow(Direction.RIGHT)
+                    self.rotate_arrow(Direction.RIGHT) #
                     is_break = True
                     break
 
@@ -116,4 +178,3 @@ class Pointer:
         self.arrow_is_changed: bool = True
         self.move_variants: list #Лист с функциями движения в нужном порядке
         self.moves_count = 0
-        self.calculate_start_position(self.pos) #начинаем двигаться с нулевых координат
