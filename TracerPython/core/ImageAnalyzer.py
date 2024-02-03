@@ -6,7 +6,6 @@ from core.Pointer import Pointer
 from core.ImageData import ImageData
 import math
 
-
 class ImageAnalyzer:
 
     def analyze(image: Image) -> ImageData:
@@ -75,63 +74,3 @@ class ImageAnalyzer:
                     i += 1
                 
         return image_data
-    
-    # def analyze(image: Image) -> ImageData:
-    #     image_data: ImageData = ImageData(image)
-    #     image = ImagePreparer.prepare(image)
-    #     square = Fragment()
-    #     width_fragments: int = math.ceil(image.width/square.width) #ширина изображения в фрагментах
-    #     height_fragments: int = math.ceil(image.height/square.height) #высота изображения в фрагментах
-    #     pointer: Pointer = Pointer(image)
-
-    #     i: int = 0
-    #     for hf in range(height_fragments):
-    #         for wf in range(width_fragments):
-    #             fragment = Fragment()
-    #             fragment.index = i
-    #             fragment.position = Point(wf*fragment.width, hf*fragment.height)
-
-    #             for y in range(fragment.position.y, fragment.position.y + fragment.height):
-    #                 for x in range(fragment.position.x, fragment.position.x + fragment.width):
-    #                     point: Point = Point(x, y)
-    #                     if pointer.pixel_is_inside_image(point): #Пиксель в пределах изображения
-    #                         if image.getpixel((point.x, point.y)) == 0:
-    #                             fragment.black_count += 1
-    #                     elif pointer.pixel_is_inside_image(point) == False:
-    #                         fragment.is_truncated = True
-                
-    #             if fragment.black_count == 0:
-    #                 fragment.is_edge = False
-
-    #             width, height = fragment.width, fragment.height
-    #             fragment_area = width*height
-    #             if fragment.is_truncated:
-    #                 width = image.width - fragment.position.x
-    #                 height = image.height - fragment.position.y
-    #                 fragment_area = width*height
-
-    #             elif fragment.black_count > 0 and fragment.black_count < fragment_area:
-    #                 fragment.is_edge = True
-
-    #             if fragment.black_count == fragment_area or fragment.black_count == 0:
-    #                 pos: Point = Point(fragment.position.x-1, fragment.position.y-1)
-    #                 for y in range(pos.y, pos.y + height+2):
-    #                     for x in range(pos.x, pos.x + width+2):
-    #                         point: Point = Point(x, y)
-    #                         if pointer.pixel_is_inside_image(point) == False:
-    #                             fragment.is_edge_image = True
-
-    #             if pointer.pixel_is_possible(fragment.position) and fragment.is_edge and fragment.is_edge_image == False:
-    #                 fragment.is_white = True
-                    
-    #             if fragment.is_edge_image:
-    #                 if pointer.pixel_is_possible(fragment.position, 255):
-    #                     fragment.is_white = True
-    #                 elif pointer.pixel_is_possible(fragment.position, 0):
-    #                     fragment.is_white = False
-               
-    #             if fragment.is_edge or fragment.is_edge_image:
-    #                 image_data.fragments.append(fragment)
-    #                 i += 1
-                
-    #     return image_data

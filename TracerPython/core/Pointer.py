@@ -165,39 +165,43 @@ class Pointer:
     def calculate_start_position(self, start: Point, end: Point, is_white: bool=False): #исключения продумать
         '''Вычисляет начальную точку контура фигуры'''
 
-        # width, height = self.image.size
+        if is_white:
+            self.trace_color = 255
+        else:
+            self.trace_color = 0
+            
         is_break = False
         for y in range(start.y, end.y+1):
             if is_break == True:
                 break
             for x in range(start.x, end.x+1):
                 point = Point(x, y)
-
-                if is_white == False:
-                    if self.pixel_is_possible(point):
-                        self.pos = point
-                        self.rotate_arrow(Direction.RIGHT) #
-                        is_break = True
-                        self.trace_color = 0
-                        break
-
-                elif is_white == True:
-                    if self.pixel_is_possible(point, lumi=255):
-                        self.pos = point
-                        self.rotate_arrow(Direction.RIGHT) #
-                        is_break = True
-                        self.trace_color = 255
-                        break
+                if self.pixel_is_possible(point, self.trace_color):
+                    self.pos = point
+                    self.rotate_arrow(Direction.RIGHT) #
+                    is_break = True
+                    break
 
     def perform_move(self):
         nope = 0
         for move in self.move_variants:
+            
+            #для того чтобы указатель мог двигаться только влево вправо вниз и вверх
+            # if (
+            #     move != self.move_up_left and
+            #     move != self.move_up_right and
+            #     move != self.move_down_left and
+            #     move != self.move_down_right
+            # ):
+                
             has_moved, direction = move()
             if has_moved:
                 self.rotate_arrow(direction)
                 break
             else:
                 nope += 1
+
+
         # if nope == 8 or len(self.move_variants) == 0:
         #     print(f'нельзя двигаться: nope = {nope}, move_vars = {len(self.move_variants)}, {self.trace_color}, x,y = {self.pos.x}, {self.pos.y}')
 
@@ -206,7 +210,6 @@ class Pointer:
         self.pos: Point = Point(0, 0)
         self.arrow: Direction = Direction.NONE
         self.arrow_is_changed: bool = False
-        self.move_variants: list = []#Лист с функциями движения в нужном порядке
+        self.move_variants: list = [] #Лист с функциями движения в нужном порядке
         self.moves_count: int = 0
-
         self.trace_color: int = 0 #трассировка черной фигуры, 255 - белой

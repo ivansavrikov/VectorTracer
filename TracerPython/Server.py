@@ -24,10 +24,9 @@ app.add_middleware(
 @app.post("/tracer/")
 async def trace(file: UploadFile = File(...)):
     contents = await file.read()
-    
     image = Image.open(BytesIO(contents))
-    svg_code = Tracer.trace(image, draw_fragments=False)
     
+    svg_code = Tracer.trace(image, draw_fragments=True)
     svg_data = BytesIO()
     svg_data.write(svg_code.encode("utf-8"))
     svg_data.seek(0)

@@ -12,7 +12,8 @@ class BuilderSVG:
     xmlns:xlink="http://www.w3.org/1999/xlink">'''
 
     def open_group(self):
-        self.svg_code += '''\n\t<g fill-rule="evenodd" fill="black" stroke="none" stroke-width="0" >\n'''
+        # self.svg_code += '''\n\t<g fill-rule="evenodd" fill="black" stroke="none" stroke-width="0" >\n'''
+        self.svg_code += '''\n\t<g>\n'''
         
     def close_group(self):
         self.svg_code += '\n\t</g>'
@@ -24,14 +25,14 @@ class BuilderSVG:
         self.path_data += f'L {point.x} {point.y} '
 
     def add_path(self, fill='black', stroke='black', opacity='1', close='Z'):
-        self.svg_code += f'\n\t\t<path fill="{fill}" fill-opacity="{opacity}" stroke="{stroke}" stroke-width="1" stroke-linejoin="miter" \n\t\td="{self.path_data}{close}"/> \n'
+        self.svg_code += f'\n\t\t<path fill="{fill}" fill-opacity="{opacity}" stroke="{stroke}" stroke-opacity="1" stroke-width="0.2" stroke-linejoin="miter" \n\t\td="{self.path_data}{close}"/> \n'
         self.path_data = ''
 
     def add_circle(self, center: Point, radius=5):
         self.svg_code += f'''\n\t<circle cx="{center.x}" cy="{center.y}" r="{radius}" stroke="none" stroke-width="0" fill="red" fill-opacity="0.8"/>'''
 
     def add_rectangle(self, pos: Point, width, height, fill='none'):
-        self.svg_code += f'''\n\t<rect x="{pos.x}" y="{pos.y}" width="{width}" height="{height}" fill="{fill}" fill-opacity="0.2" stroke="red" stroke-opacity="0.8" stroke-width="0.5" />'''
+        self.svg_code += f'''\n\t<rect x="{pos.x}" y="{pos.y}" width="{width}" height="{height}" fill="{fill}" fill-opacity="0.2" stroke="red" stroke-opacity="0.8" stroke-width="0.1" />'''
 
     def add_quadratic_bezier(self, control: Point, end: Point):
         self.path_data += f"Q {control.x} {control.y} {end.x} {end.y} "
@@ -42,8 +43,8 @@ class BuilderSVG:
     def add_text(self, pos: Point, text: str):
         self.svg_code += f'''\n\t<text x="{pos.x}" y="{pos.y}" font-family="Arial" font-size="6" fill="red">{text}</text>'''
 
-    def add_image(self, path: str, width, height):
-        self.svg_code += f'''<image xlink:href="{path}" x="0" y="0" width="{width}" height="{height}" />'''
+    def add_image(self, image_data: str, width, height):
+        self.svg_code += f'''\n<image x="-0.5" y="-0.5" width="{width}" height="{height}" image-rendering="pixelated" xlink:href="data:image/png;base64,{image_data}"/>'''
 
     def svg_close(self):
         self.svg_code += '\n</svg>'
