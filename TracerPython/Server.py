@@ -1,4 +1,4 @@
-from core.BuilderSVG import BuilderSVG
+from core.Tracer import Tracer
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -26,8 +26,7 @@ async def trace(file: UploadFile = File(...)):
     contents = await file.read()
     
     image = Image.open(BytesIO(contents))
-    builder = BuilderSVG()
-    svg_code = builder.trace(image)
+    svg_code = Tracer.trace(image, draw_fragments=False)
     
     svg_data = BytesIO()
     svg_data.write(svg_code.encode("utf-8"))

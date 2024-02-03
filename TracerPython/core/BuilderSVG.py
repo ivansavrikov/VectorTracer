@@ -1,17 +1,21 @@
-from PIL import Image
-from core.ImageAnalyzer import ImageAnalyzer
-from core.ImageData import ImageData
-from core.ImagePreparer import ImagePreparer
-from core.Pointer import Pointer
 from core.Point import Point
+
+
 
 class BuilderSVG:
 
     def svg_open(self, width: int, height: int):
         self.svg_code = f'''<svg
-    width="{width}" height="{height}" 
-    viewBox="0 0 {width} {height}" 
-    xmlns="http://www.w3.org/2000/svg">'''
+    width="{width-1}" height="{height-1}" 
+    viewBox="0 0 {width-1} {height-1}" 
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink">'''
+
+    def open_group(self):
+        self.svg_code += '''\n\t<g fill-rule="evenodd" fill="black" stroke="none" stroke-width="0" >\n'''
+        
+    def close_group(self):
+        self.svg_code += '\n\t</g>'
 
     def add_move(self, point: Point):
         self.path_data += f'M {point.x} {point.y} '
@@ -19,70 +23,30 @@ class BuilderSVG:
     def add_line(self, point: Point):
         self.path_data += f'L {point.x} {point.y} '
 
-    def add_path(self):
-        self.svg_code += f'\n\t<path fill="none" stroke="black" stroke-width="2" stroke-linejoin="round" \n\t\td="{self.path_data}Z"/> \n'
+    def add_path(self, fill='black', stroke='black', opacity='1', close='Z'):
+        self.svg_code += f'\n\t\t<path fill="{fill}" fill-opacity="{opacity}" stroke="{stroke}" stroke-width="1" stroke-linejoin="miter" \n\t\td="{self.path_data}{close}"/> \n'
         self.path_data = ''
 
     def add_circle(self, center: Point, radius=5):
-        self.svg_code += f'''\n\t<circle cx="{center.x}" cy="{center.y}" r="{radius}" stroke="black" stroke-width="1" fill="red" />'''
+        self.svg_code += f'''\n\t<circle cx="{center.x}" cy="{center.y}" r="{radius}" stroke="none" stroke-width="0" fill="red" fill-opacity="0.8"/>'''
+
+    def add_rectangle(self, pos: Point, width, height, fill='none'):
+        self.svg_code += f'''\n\t<rect x="{pos.x}" y="{pos.y}" width="{width}" height="{height}" fill="{fill}" fill-opacity="0.2" stroke="red" stroke-opacity="0.8" stroke-width="0.5" />'''
+
+    def add_quadratic_bezier(self, control: Point, end: Point):
+        self.path_data += f"Q {control.x} {control.y} {end.x} {end.y} "
+
+    def add_smooth_quadratic_Bezier(self, end: Point):
+        self.path_data += f"T {end.x} {end.y} "
+
+    def add_text(self, pos: Point, text: str):
+        self.svg_code += f'''\n\t<text x="{pos.x}" y="{pos.y}" font-family="Arial" font-size="6" fill="red">{text}</text>'''
+
+    def add_image(self, path: str, width, height):
+        self.svg_code += f'''<image xlink:href="{path}" x="0" y="0" width="{width}" height="{height}" />'''
 
     def svg_close(self):
         self.svg_code += '\n</svg>'
-
-    def trace(self, image: Image):
-        image = ImagePreparer.prepare(image)
-        data: ImageData = ImageAnalyzer.analyze(image)
-        pointer: Pointer = Pointer(image)
-
-        width, height = image.size
-        self.svg_open(width, height)
-
-        smooth_range_x = width / 100
-        smooth_range_y = height / 100
-
-        for fragment in data.fragments:
-            pointer.calculate_start_position(fragment.position)
-
-            first = pointer.pos
-            corner = first
-
-            self.add_circle(first) #for debug
-            self.add_move(first)
-
-            i = 1
-            corners_count = 0
-            while True:
-                prev = pointer.pos
-                pointer.perform_move()
-
-                for fragment in data.fragments:
-                    if (
-                        pointer.pos.x >= fragment.position.x and
-                        pointer.pos.x <= fragment.position.x + fragment.width and
-                        pointer.pos.y >= fragment.position.y and
-                        pointer.pos.y <= fragment.position.y + fragment.height
-                    ):
-                        data.fragments.remove(fragment)
-
-                if pointer.arrow_is_changed:
-                    potential = prev
-                    
-                    if (abs(potential.x - corner.x) >= smooth_range_x or abs(potential.y - corner.y) >= smooth_range_y):
-                        corner = potential
-
-                        self.add_line(corner)
-                        
-                        corners_count += 1                      
-                        if corners_count % 10 == 0:
-                            self.path_data += '\n\t\t'
-                            
-                    if potential == first:
-                        break
-                    i += 1
-            
-            self.add_path()
-        self.svg_close()
-        return self.svg_code
 
     def __init__(self):
         self.path_data: str = ''

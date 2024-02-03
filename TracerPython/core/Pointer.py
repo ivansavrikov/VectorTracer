@@ -8,6 +8,19 @@ from core.DirectionEnum import Direction
 class Pointer:
     '''фактически Y растет вниз, X вправо, но названия даны в человеческом представлении'''
 
+    #Возможно есть ошибка
+    def point_is_inside_area(point: Point, start: Point, end: Point) -> bool:
+        '''Проверяет входит ли точка в квадратную область start=леваяверхняя координата, end=праваянижняя'''
+        if (
+            point.x >= start.x and
+            point.x <= end.x and
+            point.y >= start.y and
+            point.y <= end.y
+        ):
+            return True
+        else:
+            return False
+
     def pixel_is_inside_image(self, point: Point) -> bool:
         width, height = self.image.size
         if (0 <= point.x < width) and (0 <= point.y < height): #Пиксель в пределах изображения
@@ -15,9 +28,9 @@ class Pointer:
         else:
             return False
 
-    def pixel_is_possible(self, point: Point) -> bool:
+    def pixel_is_possible(self, point: Point, lumi:int = 0) -> bool:
         if self.pixel_is_inside_image(point):
-            if self.image.getpixel((point.x, point.y)) <= 100: #Яркость пикселя низкая (черный цвет)
+            if self.image.getpixel((point.x, point.y)) == lumi: #<= 100 Яркость пикселя низкая (черный цвет)
                 return True
             else:
                 return False
@@ -25,7 +38,7 @@ class Pointer:
             return False
 
     def move(self, point: Point) -> bool:
-        if self.pixel_is_possible(point):
+        if self.pixel_is_possible(point, self.trace_color):
             self.pos = point
             self.moves_count += 1
             return True
@@ -138,6 +151,7 @@ class Pointer:
                                       self.move_down_left, 
                                       self.move_left]
             case Direction.NONE:
+                self.move_variants = []
                 pass #сделать исключение или пустой список
 
     def rotate_arrow(self, direction: Direction):
@@ -148,33 +162,51 @@ class Pointer:
             self.arrow_is_changed = True
             self.arrange_move_variants()
 
-    def calculate_start_position(self, start: Point): #исключения продумать
+    def calculate_start_position(self, start: Point, end: Point, is_white: bool=False): #исключения продумать
         '''Вычисляет начальную точку контура фигуры'''
 
-        width, height = self.image.size
+        # width, height = self.image.size
         is_break = False
-        for y in range(start.y, height):
+        for y in range(start.y, end.y+1):
             if is_break == True:
                 break
-            for x in range(start.x, width):
+            for x in range(start.x, end.x+1):
                 point = Point(x, y)
-                if self.pixel_is_possible(point):
-                    self.pos = point
-                    self.rotate_arrow(Direction.RIGHT) #
-                    is_break = True
-                    break
+
+                if is_white == False:
+                    if self.pixel_is_possible(point):
+                        self.pos = point
+                        self.rotate_arrow(Direction.RIGHT) #
+                        is_break = True
+                        self.trace_color = 0
+                        break
+
+                elif is_white == True:
+                    if self.pixel_is_possible(point, lumi=255):
+                        self.pos = point
+                        self.rotate_arrow(Direction.RIGHT) #
+                        is_break = True
+                        self.trace_color = 255
+                        break
 
     def perform_move(self):
+        nope = 0
         for move in self.move_variants:
             has_moved, direction = move()
             if has_moved:
                 self.rotate_arrow(direction)
                 break
+            else:
+                nope += 1
+        # if nope == 8 or len(self.move_variants) == 0:
+        #     print(f'нельзя двигаться: nope = {nope}, move_vars = {len(self.move_variants)}, {self.trace_color}, x,y = {self.pos.x}, {self.pos.y}')
 
     def __init__(self, image: Image):
         self.image: Image = ImagePreparer.prepare(image)
         self.pos: Point = Point(0, 0)
         self.arrow: Direction = Direction.NONE
-        self.arrow_is_changed: bool = True
-        self.move_variants: list #Лист с функциями движения в нужном порядке
-        self.moves_count = 0
+        self.arrow_is_changed: bool = False
+        self.move_variants: list = []#Лист с функциями движения в нужном порядке
+        self.moves_count: int = 0
+
+        self.trace_color: int = 0 #трассировка черной фигуры, 255 - белой

@@ -17,7 +17,7 @@ class ImagePreparer:
 
     def to_binary_image(image: Image):
         threshold = 100
-        binary_image = image.point(lambda p: 0 if p < threshold else 255, '1')
+        binary_image = image.point(lambda p: 0 if p < threshold else 255, 'L')
         return binary_image
 
     def draw_fragments(image: Image) -> Image:
