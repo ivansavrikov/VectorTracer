@@ -30,7 +30,7 @@ class Pointer:
 
     def pixel_is_possible(self, point: Point, lumi:int = 0) -> bool:
         if self.pixel_is_inside_image(point):
-            if self.image.getpixel((point.x, point.y)) == lumi: #<= 100 Яркость пикселя низкая (черный цвет)
+            if self.image.getpixel((point.x, point.y)) == lumi: #== lumi
                 return True
             else:
                 return False
@@ -38,7 +38,9 @@ class Pointer:
             return False
 
     def move(self, point: Point) -> bool:
-        if self.pixel_is_possible(point, self.trace_color):
+        # if self.pixel_is_possible(point, self.trace_color):
+        if self.pixel_is_possible(point):
+            
             self.pos = point
             self.moves_count += 1
             return True
@@ -169,7 +171,8 @@ class Pointer:
             self.trace_color = 255
         else:
             self.trace_color = 0
-            
+
+        prev = start
         is_break = False
         for y in range(start.y, end.y+1):
             if is_break == True:
@@ -177,10 +180,19 @@ class Pointer:
             for x in range(start.x, end.x+1):
                 point = Point(x, y)
                 if self.pixel_is_possible(point, self.trace_color):
-                    self.pos = point
-                    self.rotate_arrow(Direction.RIGHT) #
+
+                    if self.trace_color == 0:
+                        self.pos = point
+                        self.rotate_arrow(Direction.RIGHT) #
+                    elif self.trace_color == 255:
+                        self.pos = prev
+                        self.rotate_arrow(Direction.LEFT) #
+
+                    # self.pos = point
+                    # self.rotate_arrow(Direction.RIGHT) #
                     is_break = True
                     break
+                prev = point
 
     def perform_move(self):
         nope = 0
