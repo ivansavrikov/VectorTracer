@@ -31,7 +31,7 @@ class UAnalyzer:
                             else:
                                 fragment.colors[color] += 1
                 
-                if len(fragment.colors.keys()) > 1:
+                if len(fragment.colors) > 1:
                     fragment.colors = sorted(fragment.colors.items(), key=lambda x: x[1])
                     fragment.colors = reversed(fragment.colors)
                     fragment.colors = dict(fragment.colors)

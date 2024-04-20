@@ -11,9 +11,9 @@ class UFragment:
         '''Проверяет входит ли точка во фрагмент'''
         if (
             point.x >= self.position.x and
-            point.x <= self.position.x + self.width - 1 and
+            point.x <= self.position.x + UFragment.size - 1 and
             point.y >= self.position.y and
-            point.y <= self.position.y + self.height - 1
+            point.y <= self.position.y + UFragment.size - 1
         ):
             return True
         else:

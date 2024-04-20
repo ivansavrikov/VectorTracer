@@ -28,7 +28,7 @@ async def trace(file: UploadFile = File(...)):
         contents = await file.read()
         image = Image.open(BytesIO(contents))
         
-        svg_code = UTracer.trace(image)
+        svg_code = UTracer.trace(image, draw_fragments=False)
         svg_data = BytesIO()
         svg_data.write(svg_code.encode("utf-8"))
         svg_data.seek(0)

@@ -25,7 +25,7 @@ class BuilderSVG:
         self.path_data += f'L {point.x} {point.y} '
 
     def add_path(self, fill='black', stroke='black', opacity='1', close='Z'):
-        self.svg_code += f'\n\t\t<path fill="{fill}" fill-opacity="{opacity}" stroke="{stroke}" stroke-opacity="1" stroke-width="0.2" stroke-linejoin="miter" \n\t\td="{self.path_data}{close}"/> \n'
+        self.svg_code += f'\n\t\t<path fill="{fill}" fill-opacity="{opacity}" stroke="{stroke}" stroke-opacity="1" stroke-width="1" stroke-linejoin="round" \n\t\td="{self.path_data}{close}"/> \n'
         self.path_data = ''
 
     def add_circle(self, center: Point, radius=5):

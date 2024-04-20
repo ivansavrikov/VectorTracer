@@ -3,10 +3,10 @@ from PIL import Image
 from core.Point import Point
 from core.ImagePreparer import ImagePreparer
 from core.DirectionEnum import Direction
-
+from core.Exceptions import MyCustomException
 
 class UPointer:
-    '''фактически Y растет вниз, X вправо, но названия даны в человеческом представлении'''
+    '''фактически Y растет вниз, X вправо, но названия даны для человеческого представления'''
 
     def pixel_is_inside_image(self, point: Point) -> bool:
         width, height = self.image.size
@@ -139,6 +139,7 @@ class UPointer:
                                       self.move_left]
             case Direction.NONE:
                 self.move_variants = []
+                raise MyCustomException("Directtion == None")
                 #TODO: Здесь тупик
 
     def rotate_arrow(self, direction: Direction):
@@ -149,21 +150,77 @@ class UPointer:
             self.arrow_is_changed = True
             self.arrange_move_variants()
 
-    def calculate_start_position(self, start: Point, end: Point): #исключения продумать
+    def calc_arrow(self) -> bool:
+        start = self.pos
+        false_px_count = 0
+
+        up, _ = self.move_up()
+        self.pos = start
+        down, _ = self.move_down()
+        self.pos = start
+        left, _ = self.move_left()
+        self.pos = start
+        right, _ = self.move_right()
+        self.pos = start
+
+        if not up: false_px_count += 1
+        if not down: false_px_count += 1
+        if not left: false_px_count += 1
+        if not right: false_px_count += 1
+        
+        match false_px_count:
+            case 0:
+                print('lala') 
+                return False
+            case 1:
+                print('yeah')
+                if not up: self.rotate_arrow(Direction.DOWN_RIGHT)
+                elif not down: self.rotate_arrow(Direction.UP_LEFT)
+                elif not left: self.rotate_arrow(Direction.DOWN_RIGHT)
+                elif not right: self.rotate_arrow(Direction.UP_LEFT)
+                return True
+
+            case 2:
+                print('lit')
+                if not up and not right: self.rotate_arrow(Direction.DOWN_LEFT)
+                elif not up and not left: self.rotate_arrow(Direction.DOWN_RIGHT)
+                elif not down and not left: self.rotate_arrow(Direction.UP_RIGHT)
+                elif not down and not right: self.rotate_arrow(Direction.UP_LEFT)
+                elif not up and not down: self.rotate_arrow(Direction.UP_LEFT) #
+                elif not left and not right: self.rotate_arrow(Direction.UP_RIGHT) #
+                return True
+            
+            case 3:
+                print('straightip')
+                if not up and not left and not right: self.rotate_arrow(Direction.DOWN) #
+                if not up and not down and not right: self.rotate_arrow(Direction.LEFT)
+                if not down and not left and not right: self.rotate_arrow(Direction.UP)
+                if not up and not down and not left: self.rotate_arrow(Direction.RIGHT)
+                return True
+        
+        self.pos = start
+        
+
+    def calculate_start_position(self, start: Point, end: Point): #исключениsя продумать
         '''Вычисляет начальную точку контура фигуры'''
 
         prev = start
-
         is_break = False
         for y in range(start.y, end.y+1):
             if is_break: break
             for x in range(start.x, end.x+1):
                 point = Point(x, y)
-                if self.try_move(prev) == True and self.try_move(point) == False:
-                    # TODO: возможно нужно повернуть стрелку
-                    is_break = True
-                    break
+                if self.try_move(point):
+                    if self.calc_arrow():
+                        is_break = True
+                        break
                 prev = point
+                # if self.try_move(prev) == True and self.try_move(point) == False:
+                #     # TODO: возможно нужно повернуть стрелку
+                #     self.rotate_arrow(Direction.RIGHT)
+                #     is_break = True
+                #     break
+                # prev = point
 
     def perform_move(self):
         nope = 0
@@ -175,8 +232,8 @@ class UPointer:
             else:
                 nope += 1
 
-        # if nope == 8 or len(self.move_variants) == 0:
-        #     print(f'нельзя двигаться: nope = {nope}, move_vars = {len(self.move_variants)}, {self.trace_color}, x,y = {self.pos.x}, {self.pos.y}')
+        if nope == 8 or len(self.move_variants) == 0:
+            raise MyCustomException(f'нельзя двигаться: nope = {nope}, move_vars = {len(self.move_variants)}, {self.color}, x,y = {self.pos.x}, {self.pos.y}')
 
     def __init__(self, image: Image):
         # self.image: Image = ImagePreparer.prepare(image)
