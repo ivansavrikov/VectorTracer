@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 from io import BytesIO
 from fastapi.responses import StreamingResponse
+from core.UTracer import UTracer
 
 #uvicorn Server:app --reload
 app = FastAPI()
@@ -27,7 +28,7 @@ async def trace(file: UploadFile = File(...)):
         contents = await file.read()
         image = Image.open(BytesIO(contents))
         
-        svg_code = Tracer.trace(image, draw_fragments=False)
+        svg_code = UTracer.trace(image)
         svg_data = BytesIO()
         svg_data.write(svg_code.encode("utf-8"))
         svg_data.seek(0)

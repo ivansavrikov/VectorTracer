@@ -152,20 +152,18 @@ class UPointer:
     def calculate_start_position(self, start: Point, end: Point): #исключения продумать
         '''Вычисляет начальную точку контура фигуры'''
 
-        # prev = start
+        prev = start
 
         is_break = False
         for y in range(start.y, end.y+1):
-            if is_break == True:
-                break
+            if is_break: break
             for x in range(start.x, end.x+1):
                 point = Point(x, y)
-                if self.try_move(point) == True:
+                if self.try_move(prev) == True and self.try_move(point) == False:
                     # TODO: возможно нужно повернуть стрелку
                     is_break = True
                     break
-
-                # prev = point
+                prev = point
 
     def perform_move(self):
         nope = 0
@@ -189,4 +187,4 @@ class UPointer:
         self.move_variants: list = [] #Лист с функциями движения в нужном порядке
         self.moves_count: int = 0
         self.trace_color: int = 0
-        self.color: str = "000000"
+        self.color: tuple = (0,0,0)
