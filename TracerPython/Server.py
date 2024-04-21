@@ -6,6 +6,7 @@ from PIL import Image
 from io import BytesIO
 from fastapi.responses import StreamingResponse
 from core.UTracer import UTracer
+from core.ColorClusterizer import quantize_colors
 
 #uvicorn Server:app --reload
 app = FastAPI()
@@ -27,7 +28,7 @@ async def trace(file: UploadFile = File(...)):
     try:
         contents = await file.read()
         image = Image.open(BytesIO(contents))
-        
+        image = quantize_colors(image, 2)
         svg_code = UTracer.trace(image, draw_fragments=False)
         svg_data = BytesIO()
         svg_data.write(svg_code.encode("utf-8"))

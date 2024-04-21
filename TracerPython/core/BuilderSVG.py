@@ -32,7 +32,14 @@ class BuilderSVG:
         self.svg_code += f'''\n\t<circle cx="{center.x}" cy="{center.y}" r="{radius}" stroke="none" stroke-width="0" fill="red" fill-opacity="0.8"/>'''
 
     def add_rectangle(self, pos: Point, width, height, fill='none'):
-        self.svg_code += f'''\n\t<rect x="{pos.x}" y="{pos.y}" width="{width}" height="{height}" fill="{fill}" fill-opacity="0.2" stroke="red" stroke-opacity="0.8" stroke-width="0.1" />'''
+        x = pos.x
+        y = pos.y
+        if x > 0 and y > 0:
+            x -= 0.5
+            y -= 0.5
+            width += 1
+            height += 1
+        self.svg_code += f'''\n\t<rect x="{x}" y="{y}" width="{width}" height="{height}" fill="{fill}" fill-opacity="0.2" stroke="red" stroke-opacity="0.8" stroke-width="0.1" />'''
 
     def add_quadratic_bezier(self, control: Point, end: Point):
         self.path_data += f"Q {control.x} {control.y} {end.x} {end.y} "

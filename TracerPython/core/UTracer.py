@@ -1,3 +1,5 @@
+import base64
+from io import BytesIO
 from PIL import Image
 from core.BuilderSVG import BuilderSVG
 from core.Point import Point
@@ -16,36 +18,58 @@ class UTracer:
         fragments = UAnalyzer.analyze(image)
         print(f"Фрагментов {len(fragments)}")
 
-        for f in fragments:
-            if '255,255,255' in f.colors:
-                del f.colors["255,255,255"]
+        # for f in fragments:
+        #     if '255,255,255' in f.colors:
+        #         del f.colors["255,255,255"]
 
         pointer: UPointer = UPointer(image)
 
         width, height = image.size
         svg.svg_open(width, height)
 
+        # #temp
+        # image_bytes_io = BytesIO()
+        # image.save(image_bytes_io, format="PNG")
+        # image_bytes = image_bytes_io.getvalue()
+        # image_data = base64.b64encode(image_bytes).decode('utf-8')
+        # svg.add_image(image_data, image.width, image.height)
+
         svg.open_group()
 
         # 5 - normal   
-        smooth_range_x = 1
-        smooth_range_y = 1
+        smooth_range_x = 5
+        smooth_range_y = 5
 
+        start_fragments = []
+        i = 0
+        is_break = False
         while len(fragments) > 0:
+            if is_break: break
             fragment = fragments[0]
-
+            i += 1
+            fragment.index = i
+            start_fragments.append(fragment)
             for color in list(fragment.colors.keys()):
                 r, g, b = color.split(',')
                 pointer.color = (int(r), int(g), int(b))
                 pointer.calculate_start_position(fragment.position, Point(fragment.position.x + UFragment.size-1, fragment.position.y + UFragment.size-1))
 
                 first = pointer.pos
+                first_arrow = pointer.arrow
                 corner = first
 
                 svg.add_move(first)
 
                 corners_count = 1
                 while True:
+                    # if corners_count >= 10000:
+                    #     is_break = True
+                    #     print(f'ошибка в контуре 10000 \nstart_pos {first.x} {first.y}\nstart_arrow {first_arrow}\ntrace_color = {pointer.color}')
+                    #     hex = '#{:02x}{:02x}{:02x}'.format(*pointer.color)
+                    #     svg.add_path('none', stroke='green')
+                    #     svg.add_rectangle(fragment.position, UFragment.size, UFragment.size, fill='none')
+                    #     svg.add_circle(first, 0.5)
+                    #     break
                     prev = pointer.pos
 
                     for f in fragments:
@@ -77,16 +101,17 @@ class UTracer:
             
                 hex = '#{:02x}{:02x}{:02x}'.format(*pointer.color)
                 svg.add_path(hex, stroke=hex)
+                # svg.path_data = '' #test
         
         svg.close_group()
 
         
         if draw_fragments:
             svg.open_group()
-            fragments = UAnalyzer.analyze(image)
-            for fragment in fragments:
+            # fragments = UAnalyzer.analyze(image)
+            for fragment in start_fragments:
                 svg.add_rectangle(fragment.position, UFragment.size, UFragment.size, fill='none')
-                # svg.add_text(Point(fragment.position.x, UFragment.size.y+UFragment.size/2), f'')
+                svg.add_text(Point(fragment.position.x, fragment.position.y+UFragment.size/2), f'{fragment.index}')
             svg.close_group()
 
         svg.svg_close()

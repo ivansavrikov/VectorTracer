@@ -154,48 +154,48 @@ class UPointer:
         start = self.pos
         false_px_count = 0
 
-        up, _ = self.move_up()
+        up_true_px, _ = self.move_up()
         self.pos = start
-        down, _ = self.move_down()
+        down_true_px, _ = self.move_down()
         self.pos = start
-        left, _ = self.move_left()
+        left_true_px, _ = self.move_left()
         self.pos = start
-        right, _ = self.move_right()
+        right_true_px, _ = self.move_right()
         self.pos = start
 
-        if not up: false_px_count += 1
-        if not down: false_px_count += 1
-        if not left: false_px_count += 1
-        if not right: false_px_count += 1
+        if not up_true_px: false_px_count += 1
+        if not down_true_px: false_px_count += 1
+        if not left_true_px: false_px_count += 1
+        if not right_true_px: false_px_count += 1
         
         match false_px_count:
             case 0:
-                print('lala') 
+                print('case 0') 
                 return False
             case 1:
-                print('yeah')
-                if not up: self.rotate_arrow(Direction.DOWN_RIGHT)
-                elif not down: self.rotate_arrow(Direction.UP_LEFT)
-                elif not left: self.rotate_arrow(Direction.DOWN_RIGHT)
-                elif not right: self.rotate_arrow(Direction.UP_LEFT)
+                print('case 1')
+                if not up_true_px: self.rotate_arrow(Direction.DOWN_RIGHT)
+                elif not down_true_px: self.rotate_arrow(Direction.UP_LEFT)
+                elif not left_true_px: self.rotate_arrow(Direction.UP_RIGHT)
+                elif not right_true_px: self.rotate_arrow(Direction.DOWN_LEFT)
                 return True
 
             case 2:
-                print('lit')
-                if not up and not right: self.rotate_arrow(Direction.DOWN_LEFT)
-                elif not up and not left: self.rotate_arrow(Direction.DOWN_RIGHT)
-                elif not down and not left: self.rotate_arrow(Direction.UP_RIGHT)
-                elif not down and not right: self.rotate_arrow(Direction.UP_LEFT)
-                elif not up and not down: self.rotate_arrow(Direction.UP_LEFT) #
-                elif not left and not right: self.rotate_arrow(Direction.UP_RIGHT) #
+                print('case 2')
+                if not up_true_px and not right_true_px: self.rotate_arrow(Direction.DOWN_LEFT)
+                elif not up_true_px and not left_true_px: self.rotate_arrow(Direction.DOWN_RIGHT)
+                elif not down_true_px and not left_true_px: self.rotate_arrow(Direction.UP_RIGHT)
+                elif not down_true_px and not right_true_px: self.rotate_arrow(Direction.UP_LEFT)
+                elif not up_true_px and not down_true_px: self.rotate_arrow(Direction.UP_LEFT) #
+                elif not left_true_px and not right_true_px: self.rotate_arrow(Direction.UP_RIGHT) #
                 return True
             
             case 3:
-                print('straightip')
-                if not up and not left and not right: self.rotate_arrow(Direction.DOWN) #
-                if not up and not down and not right: self.rotate_arrow(Direction.LEFT)
-                if not down and not left and not right: self.rotate_arrow(Direction.UP)
-                if not up and not down and not left: self.rotate_arrow(Direction.RIGHT)
+                print('case 3')
+                if not up_true_px and not left_true_px and not right_true_px: self.rotate_arrow(Direction.DOWN) #
+                if not up_true_px and not down_true_px and not right_true_px: self.rotate_arrow(Direction.LEFT)
+                if not down_true_px and not left_true_px and not right_true_px: self.rotate_arrow(Direction.UP)
+                if not up_true_px and not down_true_px and not left_true_px: self.rotate_arrow(Direction.RIGHT)
                 return True
         
         self.pos = start

@@ -20,6 +20,7 @@ class UFragment:
             return False
 
     def __init__(self):
+        self.index = 0
         self.position: Point
 
         self.colors: dict = dict()
