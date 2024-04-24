@@ -15,9 +15,11 @@ class UAnalyzer:
 
         pointer: UPointer = UPointer(image)
 
+        i = 0
         for hf in range(height_fragments):
             for wf in range(width_fragments):
                 fragment = UFragment()
+                fragment.index = i
                 fragment.position = Point(wf*UFragment.size, hf*UFragment.size)
                 
                 for y in range(fragment.position.y, fragment.position.y + UFragment.size):
@@ -36,5 +38,7 @@ class UAnalyzer:
                     fragment.colors = reversed(fragment.colors)
                     fragment.colors = dict(fragment.colors)
                     fragments.append(fragment)
+                
+                i += 1
 
         return fragments

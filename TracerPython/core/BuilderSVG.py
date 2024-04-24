@@ -6,8 +6,8 @@ class BuilderSVG:
 
     def svg_open(self, width: int, height: int):
         self.svg_code = f'''<svg
-    width="{width-1}" height="{height-1}" 
-    viewBox="0 0 {width-1} {height-1}" 
+    width="{width}" height="{height}" 
+    viewBox="0 0 {width} {height}" 
     xmlns="http://www.w3.org/2000/svg"
     xmlns:xlink="http://www.w3.org/1999/xlink">'''
 
@@ -25,7 +25,7 @@ class BuilderSVG:
         self.path_data += f'L {point.x} {point.y} '
 
     def add_path(self, fill='black', stroke='black', opacity='1', close='Z'):
-        self.svg_code += f'\n\t\t<path fill="{fill}" fill-opacity="{opacity}" stroke="{stroke}" stroke-opacity="1" stroke-width="1" stroke-linejoin="round" \n\t\td="{self.path_data}{close}"/> \n'
+        self.svg_code += f'\n\t\t<path \n\t\t\tfill="{fill}" \n\t\t\tfill-opacity="{opacity}" \n\t\t\tstroke="{stroke}" \n\t\t\tstroke-opacity="1" \n\t\t\tstroke-width="1.5" \n\t\t\tstroke-linejoin="round" \n\t\t\td="{self.path_data}{close}"/> \n'
         self.path_data = ''
 
     def add_circle(self, center: Point, radius=5):
@@ -34,12 +34,12 @@ class BuilderSVG:
     def add_rectangle(self, pos: Point, width, height, fill='none'):
         x = pos.x
         y = pos.y
-        if x > 0 and y > 0:
-            x -= 0.5
-            y -= 0.5
-            width += 1
-            height += 1
-        self.svg_code += f'''\n\t<rect x="{x}" y="{y}" width="{width}" height="{height}" fill="{fill}" fill-opacity="0.2" stroke="red" stroke-opacity="0.8" stroke-width="0.1" />'''
+        # if x > 0 and y > 0:
+        #     x -= 0.5
+        #     y -= 0.5
+        #     width += 1
+        #     height += 1
+        self.svg_code += f'''\n\t<rect x="{x}" y="{y}" width="{width}" height="{height}" fill="{fill}" fill-opacity="0.2" stroke="black" stroke-opacity="0.8" stroke-width="0.1" />'''
 
     def add_quadratic_bezier(self, control: Point, end: Point):
         self.path_data += f"Q {control.x} {control.y} {end.x} {end.y} "
@@ -48,10 +48,14 @@ class BuilderSVG:
         self.path_data += f"T {end.x} {end.y} "
 
     def add_text(self, pos: Point, text: str):
-        self.svg_code += f'''\n\t<text x="{pos.x}" y="{pos.y}" font-family="Arial" font-size="6" fill="red">{text}</text>'''
+        self.svg_code += f'''\n\t<text x="{pos.x}" y="{pos.y}" font-family="Calibri" font-size="2" fill="black">{text}</text>'''
 
     def add_image(self, image_data: str, width, height):
-        self.svg_code += f'''\n<image x="-0.5" y="-0.5" width="{width}" height="{height}" image-rendering="pixelated" xlink:href="data:image/png;base64,{image_data}"/>'''
+        # x = -0.5
+        # y = -0.5
+        x = 0
+        y = 0
+        self.svg_code += f'''\n<image x="{x}" y="{y}" width="{width}" height="{height}" image-rendering="pixelated" xlink:href="data:image/png;base64,{image_data}"/>'''
 
     def svg_close(self):
         self.svg_code += '\n</svg>'

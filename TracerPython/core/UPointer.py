@@ -170,10 +170,10 @@ class UPointer:
         
         match false_px_count:
             case 0:
-                print('case 0') 
+                # print('case 0') 
                 return False
             case 1:
-                print('case 1')
+                # print('case 1')
                 if not up_true_px: self.rotate_arrow(Direction.DOWN_RIGHT)
                 elif not down_true_px: self.rotate_arrow(Direction.UP_LEFT)
                 elif not left_true_px: self.rotate_arrow(Direction.UP_RIGHT)
@@ -181,7 +181,7 @@ class UPointer:
                 return True
 
             case 2:
-                print('case 2')
+                # print('case 2')
                 if not up_true_px and not right_true_px: self.rotate_arrow(Direction.DOWN_LEFT)
                 elif not up_true_px and not left_true_px: self.rotate_arrow(Direction.DOWN_RIGHT)
                 elif not down_true_px and not left_true_px: self.rotate_arrow(Direction.UP_RIGHT)
@@ -191,7 +191,7 @@ class UPointer:
                 return True
             
             case 3:
-                print('case 3')
+                # print('case 3')
                 if not up_true_px and not left_true_px and not right_true_px: self.rotate_arrow(Direction.DOWN) #
                 if not up_true_px and not down_true_px and not right_true_px: self.rotate_arrow(Direction.LEFT)
                 if not down_true_px and not left_true_px and not right_true_px: self.rotate_arrow(Direction.UP)
