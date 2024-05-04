@@ -29,7 +29,7 @@ class Tracer:
         # image_data = base64.b64encode(image_bytes).decode('utf-8')
         # svg.add_image(image_data, image.width, image.height)
 
-        svg.open_group()
+        svg.group_open()
 
         # smooth_range_x = width / 120
         # smooth_range_y = height / 120
@@ -53,7 +53,7 @@ class Tracer:
             corner = first
 
             # last_2_points = LimitedList(max_length=2)
-            svg.add_move(first)
+            svg.move_to(first)
             # last_2_points.add(first)
             path_contain_zero_point = False
 
@@ -76,7 +76,7 @@ class Tracer:
                     if (abs(potential.x - corner.x) >= smooth_range_x or 
                         abs(potential.y - corner.y) >= smooth_range_y):
                         corner = potential
-                        svg.add_line(corner)
+                        svg.line_to(corner)
 
                         # last_2_points.add(corner)
                         # if len(last_2_points.get_all()) == 2:
@@ -101,9 +101,9 @@ class Tracer:
             
             if corners_count >= 3 and not path_contain_zero_point:
                 if fill_color == 'black':
-                    svg.add_path('black', stroke='none', opacity='1')
+                    svg.path_open('black', stroke='none', opacity='1')
                 elif fill_color == 'white':
-                    svg.add_path('white', stroke='none', opacity='1')
+                    svg.path_open('white', stroke='none', opacity='1')
             else:
                 svg.path_data = ''
 
@@ -114,17 +114,17 @@ class Tracer:
         
         svg.path_data = ''
         svg.path_data += general_path_data
-        svg.add_path('black', stroke='none')
-        svg.close_group()
+        svg.path_open('black', stroke='none')
+        svg.group_close()
 
         if draw_fragments:
             data: ImageData = ImageAnalyzer.analyze(image)
             for fragment in data.fragments:
                 if fragment.is_white_outline:
-                    svg.add_rectangle(fragment.position, fragment.width, fragment.height, fill='red')
+                    svg.add_fragment(fragment.position, fragment.width, fragment.height, fill='red')
                     svg.add_text(Point(fragment.position.x, fragment.position.y+fragment.height/2), f'{fragment.index}б')
                 else:
-                    svg.add_rectangle(fragment.position, fragment.width, fragment.height, fill='none')
+                    svg.add_fragment(fragment.position, fragment.width, fragment.height, fill='none')
                     svg.add_text(Point(fragment.position.x, fragment.position.y+fragment.height/2), f'{fragment.index}ч')
 
         # if draw_fragments:

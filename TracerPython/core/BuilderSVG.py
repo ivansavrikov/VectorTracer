@@ -1,65 +1,112 @@
 from core.Point import Point
 
-
+	
 
 class BuilderSVG:
 
-    def svg_open(self, width: int, height: int):
-        self.svg_code = f'''<svg
-    width="{width}" height="{height}" 
-    viewBox="0 0 {width} {height}" 
-    xmlns="http://www.w3.org/2000/svg"
-    xmlns:xlink="http://www.w3.org/1999/xlink">'''
+	def svg_open(width: int, height: int):
+		return (
+			f'<svg\n'
+			f'\twidth="{width}"\n'
+			f'\theight="{height}"\n'
+			f'\tviewBox="0 0 {width} {height}"\n'
+			f'\txmlns="http://www.w3.org/2000/svg"\n'
+			f'\txmlns:xlink="http://www.w3.org/1999/xlink">\n'
+		)
 
-    def open_group(self):
-        # self.svg_code += '''\n\t<g fill-rule="evenodd" fill="black" stroke="none" stroke-width="0" >\n'''
-        self.svg_code += '''\n\t<g>\n'''
-        
-    def close_group(self):
-        self.svg_code += '\n\t</g>'
+	def group_open():
+		return '\n\t<g>\n'
+		
+	def group_close():
+		return '\t</g>\n'
 
-    def add_move(self, point: Point):
-        self.path_data += f'M {point.x} {point.y} '
+	def move_to(point: Point):
+		return f'M {point.x} {point.y} '
 
-    def add_line(self, point: Point):
-        self.path_data += f'L {point.x} {point.y} '
+	def line_to(point: Point):
+		return f'L {point.x} {point.y} '
 
-    def add_path(self, fill='black', stroke='black', opacity='1', close='Z'):
-        self.svg_code += f'\n\t\t<path \n\t\t\tfill="{fill}" \n\t\t\tfill-opacity="{opacity}" \n\t\t\tstroke="{stroke}" \n\t\t\tstroke-opacity="1" \n\t\t\tstroke-width="1.5" \n\t\t\tstroke-linejoin="round" \n\t\t\td="{self.path_data}{close}"/> \n'
-        self.path_data = ''
+	def paths_group_open():
+		return (
+			f'\n\t<g\n'
+			f'\t\tfill-opacity="1"\n'
+			f'\t\tstroke-linejoin="mitter"\n'
+			f'\t\tstroke-opacity="1"\n'
+			f'\t\tstroke-width="1.5">\n\n'
+		)
 
-    def add_circle(self, center: Point, radius=5):
-        self.svg_code += f'''\n\t<circle cx="{center.x}" cy="{center.y}" r="{radius}" stroke="none" stroke-width="0" fill="red" fill-opacity="0.8"/>'''
+	def path_open(fill='black', stroke='black', opacity='1'):
+		return (
+			f'\t\t<path\n'
+			f'\t\t\tfill="{fill}"\n'
+			# f'\t\t\tfill-opacity="{opacity}"\n'
+			f'\t\t\tstroke="{stroke}"\n'
+			# f'\t\t\tstroke-opacity="{opacity}"\n'
+			# f'\t\t\tstroke-width="1.5"\n'
+			f'\t\t\td="'
+		)
+		
+	def path_close():
+		return 'Z"/>\n\n'
 
-    def add_rectangle(self, pos: Point, width, height, fill='none'):
-        x = pos.x
-        y = pos.y
-        # if x > 0 and y > 0:
-        #     x -= 0.5
-        #     y -= 0.5
-        #     width += 1
-        #     height += 1
-        self.svg_code += f'''\n\t<rect x="{x}" y="{y}" width="{width}" height="{height}" fill="{fill}" fill-opacity="0.2" stroke="black" stroke-opacity="0.8" stroke-width="0.1" />'''
+	def add_circle(center: Point, radius=5):
+		return (
+			f'\t\t<circle\n'
+			f'\t\t\tcx="{center.x}"\n'
+			f'\t\t\tcy="{center.y}"\n'
+			f'\t\t\tr="{radius}"\n'
+			f'\t\t\tfill="red"\n'
+			f'\t\t\tfill-opacity="0.8"\n'
+			f'\t\t\tstroke="none"\n'
+			f'\t\t\tstroke-width="0"/>\n'
+		)
 
-    def add_quadratic_bezier(self, control: Point, end: Point):
-        self.path_data += f"Q {control.x} {control.y} {end.x} {end.y} "
+	def fragments_group_open():
+		return (
+			f'\n\t<g\n'
+			f'\t\tfill-opacity="1"\n'
+			f'\t\tstroke-opacity="1"\n'
+			f'\t\tfont-size="2"\n'
+			f'\t\tfont-family="Calibri">\n\n'
+		)
 
-    def add_smooth_quadratic_Bezier(self, end: Point):
-        self.path_data += f"T {end.x} {end.y} "
+	def add_fragment(pos: Point, width, height, fill='none'):
+		return (
+			f'\t\t<rect '
+			f'x="{pos.x-0.5}" '
+			f'y="{pos.y-0.5}" '
+			f'width="{width}" '
+			f'height="{height}" '
+			f'stroke="black" '
+			f'stroke-width="0.1" '
+			f'fill="{fill}"/>\n'
+		)
 
-    def add_text(self, pos: Point, text: str):
-        self.svg_code += f'''\n\t<text x="{pos.x}" y="{pos.y}" font-family="Calibri" font-size="2" fill="black">{text}</text>'''
+	def add_quadratic_bezier(control: Point, end: Point):
+		return f"Q {control.x} {control.y} {end.x} {end.y} "
 
-    def add_image(self, image_data: str, width, height):
-        # x = -0.5
-        # y = -0.5
-        x = 0
-        y = 0
-        self.svg_code += f'''\n<image x="{x}" y="{y}" width="{width}" height="{height}" image-rendering="pixelated" xlink:href="data:image/png;base64,{image_data}"/>'''
+	def add_smooth_quadratic_Bezier(end: Point):
+		return f"T {end.x} {end.y} "
 
-    def svg_close(self):
-        self.svg_code += '\n</svg>'
+	def add_text(pos: Point, text: str):
+		return (
+			f'\t\t<text '
+			f'x="{pos.x}" '
+			f'y="{pos.y}" '
+			f'fill="black"'
+			f'>{text}</text>\n'
+		)
 
-    def __init__(self):
-        self.path_data: str = ''
-        self.svg_code: str = ''
+	def add_image(image_data: str, width, height):
+		return (
+			f'\n\t<image '
+			f'x="{-0.5}" '
+			f'y="{-0.5}" '
+			f'width="{width}" '
+			f'height="{height}" '
+			f'image-rendering="pixelated" '
+			f'xlink:href="data:image/png;base64,{image_data}"/>\n'
+		)
+
+	def svg_close():
+		return '\n</svg>'
