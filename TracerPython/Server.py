@@ -1,5 +1,5 @@
 from core.Tracer import Tracer
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, UploadFile, Form, File
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
@@ -8,6 +8,7 @@ from fastapi.responses import StreamingResponse
 from core.UTracer import UTracer
 from core.ColorClusterizer import quantize_colors
 import time
+from core.ImageAnalyzer import ImagePreparer
 from core.Console import Console
 #uvicorn Server:app --reload
 app = FastAPI()
@@ -25,12 +26,12 @@ app.add_middleware(
 )
 
 @app.post("/tracer/")
-async def trace(file: UploadFile = File(...)):
+async def trace(file: UploadFile = File(...), num_colors: int = Form(...), smooth_range: int = Form(...)):
     try:
         contents = await file.read()
         image = Image.open(BytesIO(contents))
-
-        num_colors = 4
+        image = ImagePreparer.process_image(image)
+        
         start_time = time.time()
         image = quantize_colors(image, num_colors)
         end_time = time.time()
@@ -39,7 +40,7 @@ async def trace(file: UploadFile = File(...)):
         analyzing_time = 0
 
         start_time = time.time()
-        svg_code = UTracer.trace(image, draw_fragments=False)
+        svg_code = UTracer.trace(image, smooth_range, draw_fragments=False)
         end_time = time.time()
         tracing_time = end_time - start_time
 

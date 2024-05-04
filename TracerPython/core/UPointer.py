@@ -4,6 +4,7 @@ from core.Point import Point
 from core.ImagePreparer import ImagePreparer
 from core.DirectionEnum import Direction
 from core.Exceptions import MyCustomException
+from core.Console import Console
 
 class UPointer:
     '''фактически Y растет вниз, X вправо, но названия даны для человеческого представления'''
@@ -228,6 +229,8 @@ class UPointer:
             has_moved, direction = move()
             if has_moved:
                 self.rotate_arrow(direction)
+
+                # print(f'\t{Console.GREEN}{self.arrow.value} {Console.END}{self.arrow.name} (x={Console.BLUE}{self.pos.x}{Console.END} y={Console.BLUE}{self.pos.y}{Console.END}) color={self.color}')
                 break
             else:
                 nope += 1

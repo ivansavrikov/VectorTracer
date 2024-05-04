@@ -11,7 +11,7 @@ from core.Exceptions import MyCustomException
 
 class UTracer:
 
-    def trace(image: Image, draw_fragments=False):
+    def trace(image: Image, smooth_range: int, draw_fragments=False):
     
         svg = BuilderSVG()
         image = image.convert("RGB")
@@ -51,8 +51,8 @@ class UTracer:
         svg.open_group()
 
         # 5 - normal   
-        smooth_range_x = 5
-        smooth_range_y = 5
+        smooth_range_x = smooth_range
+        smooth_range_y = smooth_range
 
         start_fragments = []
         is_break = False
@@ -93,7 +93,7 @@ class UTracer:
                     try:
                         pointer.perform_move()
                     except MyCustomException:
-                        # print(f'Исключение: {pointer.pos.x} {pointer.pos.y}')
+                        print(f'Lonely pixel: {pointer.pos.x} {pointer.pos.y}')
                         break
                     
                     if pointer.arrow_is_changed:
@@ -128,5 +128,5 @@ class UTracer:
             svg.close_group()
 
         svg.svg_close()
-        print(f"Pointer position changes: {pointer.moves_count:,}")
+        print(f"\nPointer position changes: {pointer.moves_count:,}")
         return svg.svg_code
