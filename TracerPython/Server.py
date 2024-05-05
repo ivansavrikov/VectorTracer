@@ -10,7 +10,7 @@ from core.ColorClusterizer import quantize_colors
 import time
 from core.ImageAnalyzer import ImagePreparer
 from core.BuilderSVG import BuilderSVG as SVG
-from core.Console import Console
+from core.Console import Console as C
 #uvicorn Server:app --reload
 app = FastAPI()
 
@@ -42,6 +42,7 @@ async def trace(file: UploadFile = File(...), num_colors: int = Form(...), smoot
 
 		start_time = time.time()
 		svg_image = ''
+		svg_body = ''
 		svg_fragments = ''
 		# svg_image = UTracer.put_image(image)
 		# svg_fragments = UTracer.draw_fragments(image)
@@ -56,10 +57,10 @@ async def trace(file: UploadFile = File(...), num_colors: int = Form(...), smoot
 
 		#Вывод информации о работе алгоритма
 		print(f"Image: {image.width:,}x{image.height:,} ({image.width*image.height:,} pixels)")
-		print(f"\n{Console.BOLD}Clustering{Console.END}:\t\t{clustering_time:.3f} sec ({clustering_time/60:.1f} min) ({num_colors} colors)")
-		# print(f"{Console.BOLD}Analyzing{Console.END}:\t\t{analyzing_time:.2f} sec ({analyzing_time/60:.1f} min)")
-		print(f"{Console.BOLD}Analyzing{Console.END} + {Console.BOLD}Tracing{Console.END}:\t{tracing_time:.3f} sec ({tracing_time/60:.1f} min)")
-		print(f"{Console.BOLD}Total{Console.END}:\t\t\t{Console.GREEN}{(clustering_time+analyzing_time+tracing_time):.3f} sec ({(clustering_time+tracing_time)/60:.1f} min){Console.END}\n")
+		print(f"\n{C.BOLD}Clustering{C.END}:\t\t{clustering_time:.3f} sec ({clustering_time/60:.1f} min) ({num_colors} colors)")
+		# print(f"{C.BOLD}Analyzing{C.END}:\t\t{analyzing_time:.2f} sec ({analyzing_time/60:.1f} min)")
+		print(f"{C.BOLD}Analyzing{C.END} + {C.BOLD}Tracing{C.END}:\t{tracing_time:.3f} sec ({tracing_time/60:.1f} min)")
+		print(f"{C.BOLD}Total{C.END}:\t\t\t{C.GREEN}{(clustering_time+analyzing_time+tracing_time):.3f} sec ({(clustering_time+tracing_time)/60:.1f} min){C.END}\n")
 		
 		# Возвращение SVG-файла в ответе
 		return StreamingResponse(svg_data, media_type="image/svg+xml", headers={"Content-Disposition": f"attachment; filename={file.filename}.svg"})

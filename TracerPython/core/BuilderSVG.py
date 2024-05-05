@@ -35,7 +35,7 @@ class BuilderSVG:
 			f'\t\tstroke-width="1.5">\n\n'
 		)
 
-	def path_open(fill='black', stroke='black', opacity='1'):
+	def path_open(fill='none', stroke='black', opacity='1'):
 		return (
 			f'\t\t<path\n'
 			f'\t\t\tfill="{fill}"\n'

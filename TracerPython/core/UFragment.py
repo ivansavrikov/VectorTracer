@@ -5,7 +5,7 @@ from core.Point import Point
 class UFragment:
     '''Данные Квадратного фрагмента изображения'''
 
-    size: int = 16
+    size: int = 10
 
     def point_is_inside(self, point: Point) -> bool:
         '''Проверяет входит ли точка во фрагмент'''

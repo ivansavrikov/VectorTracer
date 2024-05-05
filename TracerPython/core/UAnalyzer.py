@@ -4,11 +4,12 @@ from core.Point import Point
 from core.UPointer import UPointer
 from typing import List
 import math
+from core.Console import Console as C
 
 class UAnalyzer:
 
-    def analyze(image: Image) -> list[UFragment]:
-        fragments: List[UFragment] = []
+    def analyze(image: Image):
+        fragments = dict()
 
         width_fragments: int = math.ceil(image.width/UFragment.size) #ширина изображения в фрагментах
         height_fragments: int = math.ceil(image.height/UFragment.size) #высота изображения в фрагментах
@@ -34,10 +35,11 @@ class UAnalyzer:
                                 fragment.colors[color] += 1
                 
                 if len(fragment.colors) > 1:
-                    fragment.colors = sorted(fragment.colors.items(), key=lambda x: x[1])
-                    fragment.colors = reversed(fragment.colors)
-                    fragment.colors = dict(fragment.colors)
-                    fragments.append(fragment)
+                    # fragment.colors = sorted(fragment.colors.items(), key=lambda x: x[1])
+                    # fragment.colors = reversed(fragment.colors)
+                    # fragment.colors = dict(fragment.colors)
+                    # fragments.append(fragment)
+                    fragments[fragment.index] = fragment
                 
                 i += 1
 

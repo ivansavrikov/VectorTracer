@@ -13,17 +13,14 @@ class UPointer:
         width, height = self.image.size
         if (0 <= point.x < width) and (0 <= point.y < height): #Пиксель в пределах изображения
             return True
-        else:
-            return False
+        else: return False
 
     def pixel_is_possible(self, point: Point) -> bool:
         if self.pixel_is_inside_image(point):
             if self.image.getpixel((point.x, point.y)) == self.color:
                 return True
-            else:
-                return False
-        else:
-            return False
+            else: return False
+        else: return False
 
     def try_move(self, point: Point) -> bool:
         if self.pixel_is_possible(point):
@@ -151,7 +148,7 @@ class UPointer:
             self.arrow_is_changed = True
             self.arrange_move_variants()
 
-    def calc_arrow(self) -> bool:
+    def calc_start_arrow(self) -> bool:
         start = self.pos
         false_px_count = 0
 
@@ -204,24 +201,12 @@ class UPointer:
 
     def calculate_start_position(self, start: Point, end: Point): #исключениsя продумать
         '''Вычисляет начальную точку контура фигуры'''
-
-        prev = start
-        is_break = False
         for y in range(start.y, end.y+1):
-            if is_break: break
             for x in range(start.x, end.x+1):
                 point = Point(x, y)
                 if self.try_move(point):
-                    if self.calc_arrow():
-                        is_break = True
-                        break
-                prev = point
-                # if self.try_move(prev) == True and self.try_move(point) == False:
-                #     # TODO: возможно нужно повернуть стрелку
-                #     self.rotate_arrow(Direction.RIGHT)
-                #     is_break = True
-                #     break
-                # prev = point
+                    if self.calc_start_arrow():
+                        return
 
     def perform_move(self):
         nope = 0
@@ -229,22 +214,18 @@ class UPointer:
             has_moved, direction = move()
             if has_moved:
                 self.rotate_arrow(direction)
-
-                # print(f'\t{Console.GREEN}{self.arrow.value} {Console.END}{self.arrow.name} (x={Console.BLUE}{self.pos.x}{Console.END} y={Console.BLUE}{self.pos.y}{Console.END}) color={self.color}')
-                break
+                return
             else:
                 nope += 1
 
-        if nope == 8 or len(self.move_variants) == 0:
-            raise MyCustomException(f'нельзя двигаться: nope = {nope}, move_vars = {len(self.move_variants)}, {self.color}, x,y = {self.pos.x}, {self.pos.y}')
+        # if nope == 8 or len(self.move_variants) == 0:
+        #     raise MyCustomException(f'нельзя двигаться: nope = {nope}, move_vars = {len(self.move_variants)}, {self.color}, x,y = {self.pos.x}, {self.pos.y}')
 
     def __init__(self, image: Image):
-        # self.image: Image = ImagePreparer.prepare(image)
         self.image: Image = image
         self.pos: Point = Point(0, 0)
         self.arrow: Direction = Direction.NONE
         self.arrow_is_changed: bool = False
         self.move_variants: list = [] #Лист с функциями движения в нужном порядке
         self.moves_count: int = 0
-        self.trace_color: int = 0
         self.color: tuple = (0,0,0)
