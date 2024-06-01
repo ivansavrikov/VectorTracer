@@ -1,6 +1,7 @@
+import math
 from core.Point import Point
-
-	
+from core.UFragment import UFragment
+from datetime import date
 
 class BuilderSVG:
 
@@ -9,9 +10,16 @@ class BuilderSVG:
 			f'<svg\n'
 			f'\twidth="{width}"\n'
 			f'\theight="{height}"\n'
-			f'\tviewBox="0 0 {width} {height}"\n'
+			f'\tviewBox="-1 -1 {width+1} {height+1}"\n'
 			f'\txmlns="http://www.w3.org/2000/svg"\n'
 			f'\txmlns:xlink="http://www.w3.org/1999/xlink">\n'
+		)
+
+	def metadata():
+		return (
+			f'\n\t<metadata>\n'
+			f'\tCreated by SpiderTracer, developed by Ivan Savrikov 2023-{date.today().year}\n'
+			f'\t</metadata>\n'
 		)
 
 	def group_open():
@@ -32,12 +40,26 @@ class BuilderSVG:
 			f'\t\tfill-opacity="1"\n'
 			f'\t\tstroke-linejoin="mitter"\n'
 			f'\t\tstroke-opacity="1"\n'
-			f'\t\tstroke-width="1.5">\n\n'
+			f'\t\tstroke-width="1">\n\n'
 		)
 
-	def path_open(fill='none', stroke='black', opacity='1'):
+	# def path_open(f=UFragment(), fill='none', stroke='black', opacity='1'):
+	# 	f.index = 0
+	# 	return (
+	# 		f'\t\t<path\n'
+	# 		f'\t\t\tf_index="{f.index}"\n'
+	# 		f'\t\t\tfill="{fill}"\n'
+	# 		# f'\t\t\tfill-opacity="{opacity}"\n'
+	# 		f'\t\t\tstroke="{stroke}"\n'
+	# 		# f'\t\t\tstroke-opacity="{opacity}"\n'
+	# 		# f'\t\t\tstroke-width="1.5"\n'
+	# 		f'\t\t\td="'
+	# 	)
+
+	def path_open(index='-1', fill='none', stroke='black', opacity='1'):
 		return (
-			f'\t\t<path\n'
+			f'\t\t<path '
+			f'index="{index}"\n'
 			f'\t\t\tfill="{fill}"\n'
 			# f'\t\t\tfill-opacity="{opacity}"\n'
 			f'\t\t\tstroke="{stroke}"\n'
@@ -46,19 +68,20 @@ class BuilderSVG:
 			f'\t\t\td="'
 		)
 		
-	def path_close():
-		return 'Z"/>\n\n'
+	def path_close(is_closed=True):
+		if is_closed: return 'Z"/>\n\n'
+		else: return '"/>\n\n'
 
-	def add_circle(center: Point, radius=5):
+	def add_circle(center: Point, radius=0.3, fill="red"):
 		return (
-			f'\t\t<circle\n'
-			f'\t\t\tcx="{center.x}"\n'
-			f'\t\t\tcy="{center.y}"\n'
-			f'\t\t\tr="{radius}"\n'
-			f'\t\t\tfill="red"\n'
-			f'\t\t\tfill-opacity="0.8"\n'
-			f'\t\t\tstroke="none"\n'
-			f'\t\t\tstroke-width="0"/>\n'
+			f'\t\t<circle '
+			f'cx="{center.x}" '
+			f'cy="{center.y}" '
+			f'r="{radius}" '
+			f'fill="{fill}" '
+			f'fill-opacity="0.8" '
+			f'stroke="none" '
+			f'stroke-width="0"/>\n'
 		)
 
 	def fragments_group_open():
@@ -66,42 +89,47 @@ class BuilderSVG:
 			f'\n\t<g\n'
 			f'\t\tfill-opacity="1"\n'
 			f'\t\tstroke-opacity="1"\n'
-			f'\t\tfont-size="2"\n'
+			f'\t\tfont-size="0.5"\n'
 			f'\t\tfont-family="Calibri">\n\n'
 		)
 
-	def add_fragment(pos: Point, width, height, fill='none'):
+	def add_fragment(pos: Point, width, height, fill='none', stroke='purple'):
 		return (
 			f'\t\t<rect '
 			f'x="{pos.x-0.5}" '
 			f'y="{pos.y-0.5}" '
 			f'width="{width}" '
 			f'height="{height}" '
-			f'stroke="black" '
+			f'stroke="{stroke}" '
 			f'stroke-width="0.1" '
 			f'fill="{fill}"/>\n'
 		)
 
-	def add_quadratic_bezier(control: Point, end: Point):
+	def curve_to(p0, c1, c2, p1):
+		return f"C {c1.x} {c1.y} {c2.x} {c2.y} {p1.x} {p1.y} "
+
+	def add_quadratic_bezier(start: Point, control: Point, end: Point):
 		return f"Q {control.x} {control.y} {end.x} {end.y} "
 
 	def add_smooth_quadratic_Bezier(end: Point):
 		return f"T {end.x} {end.y} "
 
-	def add_text(pos: Point, text: str):
+	def add_text(pos: Point, text: str, color='purple'):
 		return (
 			f'\t\t<text '
 			f'x="{pos.x}" '
 			f'y="{pos.y}" '
-			f'fill="black"'
+			f'fill="{color}" '
+			f'font-size="0.5" '
+			f'font-family="Calibri"'
 			f'>{text}</text>\n'
 		)
 
-	def add_image(image_data: str, width, height):
+	def add_image(image_data: str, width, height, pos=Point(0,0)):
 		return (
 			f'\n\t<image '
-			f'x="{-0.5}" '
-			f'y="{-0.5}" '
+			f'x="{pos.x-0.5}" '
+			f'y="{pos.y-0.5}" '
 			f'width="{width}" '
 			f'height="{height}" '
 			f'image-rendering="pixelated" '
