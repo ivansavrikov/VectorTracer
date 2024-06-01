@@ -5,9 +5,6 @@ from core.BuilderSVG import BuilderSVG as SVG
 from core.Point import Point
 from core.UPointer import UPointer
 import math
-from core.UAnalyzer import UAnalyzer
-from core.UFragment import UFragment
-from core.Exceptions import MyCustomException
 from core.Console import Console as C
 from core.DirectionEnum import Direction, ArrowSymbols
 import time
@@ -215,120 +212,10 @@ class UTracer:
 		result = svg_data.getvalue() + svg_fragments
 		svg_data.close()
 		return result
-	
-	def u_trace(image: Image, smooth_range: int):
-		svg_data: StringIO = StringIO()
-		
-		image = image.convert("RGB")
-		width, height = image.size
-		collumns: int = math.ceil(image.width/UFragment.size) #ширина изображения в фрагментах
-
-		start_time = time.time()
-		fragments = UAnalyzer.analyze(image)
-		end_time = time.time()
-		analyzing_time = end_time - start_time
-		print(f"\n{C.BOLD}Analyzing{C.END}:\t\t{analyzing_time:.3f} sec ({analyzing_time/60:.1f} min) ({len(fragments)} frgmts)")
-
-		pointer: UPointer = UPointer(image)
-
-		svg_data.write(SVG.paths_group_open())
-
-		start_fragments = []
-		while len(fragments) > 0:
-			fragment = fragments[next(iter(fragments))]
-			start_fragments.append(fragment)
-			while True:
-				if len(fragment.start_points) == 0:
-					index = int(fragment.position.y/UFragment.size)*collumns+int(fragment.position.x/UFragment.size)
-					if index in fragments: del fragments[index]
-					break
-
-				key_point = next(iter(fragment.start_points))
-				x,y = key_point.split(',')
-				r, g, b = fragment.start_points[key_point]
-				pointer.pos = Point(int(x), int(y))
-				pointer.color = (int(r), int(g), int(b))
-
-				start_point = pointer.pos
-				pointer.arrow = pointer.calc_arrow()
-
-				pointer.pos = start_point
-				path = []
-				arrows = []
-				
-				hex = '#{:02x}{:02x}{:02x}'.format(*pointer.color)
-				path.append(SVG.path_open(hex, stroke=hex))
-				# path.append(SVG.path_open(fragment, 'none', stroke=hex))
-				path.append(SVG.move_to(start_point))
-
-				corners_count = 1
-				while True:
-					prev_point = pointer.pos
-
-					index = int(pointer.pos.y/UFragment.size)*collumns+int(pointer.pos.x/UFragment.size)
-					if index in fragments:
-						f = fragments[index]
-						p = f'{int(pointer.pos.x)},{int(pointer.pos.y)}'
-						if p in f.start_points:
-							del f.start_points[p]
-							f.virgin_points[p] = False
-						else:
-							# break
-							pass
-
-					is_position_changed = pointer.set_position_auto()
-					
-					arrows.append(SVG.add_fragment(pointer.pos, 1, 1, stroke=hex))
-					arrows.append(SVG.add_text(pointer.pos, ArrowSymbols.ARROWS[pointer.arrow.value], color=hex))
-					# if pointer.arrow_is_changed:
-					# 	arrows.append(SVG.add_text(pointer.pos, 't', color='red'))
-					
-					if not is_position_changed:
-						index = int(pointer.pos.y/UFragment.size)*collumns+int(pointer.pos.x/UFragment.size)
-						if index in fragments:
-							f = fragments[index]
-							p = f'{int(pointer.pos.x)},{int(pointer.pos.y)}'
-							if p in f.start_points:
-								del f.start_points[p]
-								print("continue........")
-								continue
-
-					if pointer.arrow_is_changed and prev_point != start_point:
-						path.append(SVG.line_to(prev_point))
-						
-						if corners_count >= 100000:
-							# path.append(SVG.path_close())
-							# svg_data.write("".join(path))
-							# svg_data.write("".join(arrows) + "\n")
-							path = []
-							print(f"Tracing error: infinity contour {start_point} {pointer.color}")
-							break
-							# raise Exception("Tracing error: infinity contour")
-
-						corners_count += 1                      
-						if corners_count % 10 == 0:
-							path.append('\n\t\t\t\t')             
-
-					if pointer.pos == start_point:
-						break
-			
-				path.append(SVG.path_close())
-				if corners_count >= 2:
-					svg_data.write("".join(path))
-					# svg_data.write("".join(arrows) + "\n")
-					pass
-
-		svg_data.write(SVG.group_close())
-
-		svg_fragments = ''
-		# svg_fragments = UTracer.draw_fragments(start_fragments)
-		result = svg_data.getvalue() + svg_fragments
-		svg_data.close()
-		return result
 		
 	def vectorize(image: Image):
-		svg_data: StringIO = StringIO()
-		svg_data.write(SVG.paths_group_open())
+		svg_paths: StringIO = StringIO()
+		svg_paths.write(SVG.paths_group_open())
 		pointer = UPointer(image)
 		width, height = image.size
 		pixels = np.ones((width, height), dtype=bool)
@@ -411,16 +298,16 @@ class UTracer:
 
 					if path_points_count >= 3:
 						# svg_data.write(SVG.path_open(path_index, fill='none', stroke=hex))
-						svg_data.write(SVG.path_open(path_index, fill=hex, stroke=hex))
-						svg_data.write("".join(path))
-						svg_data.write(SVG.path_close(not hex=='red'))
+						svg_paths.write(SVG.path_open(path_index, fill=hex, stroke=hex))
+						svg_paths.write("".join(path))
+						svg_paths.write(SVG.path_close(not hex=='red'))
 						# svg_data.write(SVG.add_circle(start_position, fill=hex))
 						# svg_data.write(SVG.add_text(start_position, path_index, color='green') + '\n')
 						path_index += 1
 		
-		svg_data.write(SVG.group_close())
-		paths = svg_data.getvalue()
-		svg_data.close()
+		svg_paths.write(SVG.group_close())
+		paths = svg_paths.getvalue()
+		svg_paths.close()
 		return paths + ''.join(start_points)
 
 	def put_image(image: Image, pos=Point(0,0)):
@@ -435,20 +322,4 @@ class UTracer:
 
 		result = svg_image.getvalue()
 		svg_image.close()
-		return result
-	
-	def draw_fragments(fragments: list):
-		svg_data: StringIO = StringIO()
-		
-		# image = image.convert("RGB")
-		# fragments = UAnalyzer.analyze(image)
-
-		svg_data.write(SVG.fragments_group_open())
-		for f in fragments:
-			svg_data.write(SVG.add_fragment(f.position, UFragment.size, UFragment.size, fill='none'))
-			svg_data.write(SVG.add_text(Point(f.position.x, f.position.y+UFragment.size/2), f'{f.index}'))
-		svg_data.write(SVG.group_close())
-
-		result = svg_data.getvalue()
-		svg_data.close()
 		return result

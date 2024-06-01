@@ -10,17 +10,6 @@ class Direction(Enum):
 	DOWN_RIGHT = 225
 	DOWN = 270
 	DOWN_LEFT = 315
-	
-	# LEFT = '←'
-	# UP_LEFT = '↖'
-	# UP = '↑'
-	# UP_RIGHT = '↗'
-	# NONE = 'None'
-	# RIGHT = '→'
-	# DOWN_RIGHT = '↘'
-	# DOWN = '↓'
-	# DOWN_LEFT = '↙'
-
 
 class ArrowSymbols:
     ARROWS = {

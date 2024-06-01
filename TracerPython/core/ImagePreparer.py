@@ -1,6 +1,5 @@
 from PIL import Image
 import math
-from core.Fragment import Fragment
 from core.Point import Point
 
 #ВОЗМОЖЕН РЕФАКТОРИНГ
@@ -30,8 +29,6 @@ class ImagePreparer:
         threshold = 100
         binary_image = image.point(lambda p: 0 if p < threshold else 255, 'L')
         return binary_image
-
-    def draw_fragments(image: Image) -> Image:
         square = Fragment()
         width_fragments: int = math.ceil(image.width/square.width) #ширина изображения в фрагментах
         height_fragments: int = math.ceil(image.height/square.height) #высота изображения в фрагментах

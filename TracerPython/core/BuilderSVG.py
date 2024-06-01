@@ -1,6 +1,4 @@
-import math
 from core.Point import Point
-from core.UFragment import UFragment
 from datetime import date
 
 class BuilderSVG:
@@ -43,23 +41,10 @@ class BuilderSVG:
 			f'\t\tstroke-width="1">\n\n'
 		)
 
-	# def path_open(f=UFragment(), fill='none', stroke='black', opacity='1'):
-	# 	f.index = 0
-	# 	return (
-	# 		f'\t\t<path\n'
-	# 		f'\t\t\tf_index="{f.index}"\n'
-	# 		f'\t\t\tfill="{fill}"\n'
-	# 		# f'\t\t\tfill-opacity="{opacity}"\n'
-	# 		f'\t\t\tstroke="{stroke}"\n'
-	# 		# f'\t\t\tstroke-opacity="{opacity}"\n'
-	# 		# f'\t\t\tstroke-width="1.5"\n'
-	# 		f'\t\t\td="'
-	# 	)
-
 	def path_open(index='-1', fill='none', stroke='black', opacity='1'):
 		return (
 			f'\t\t<path '
-			f'index="{index}"\n'
+			f'i="{index}"\n'
 			f'\t\t\tfill="{fill}"\n'
 			# f'\t\t\tfill-opacity="{opacity}"\n'
 			f'\t\t\tstroke="{stroke}"\n'
