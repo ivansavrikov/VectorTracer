@@ -45,7 +45,6 @@ async def trace(file: UploadFile = File(...), num_colors: int = Form(...), smoot
 	svg_image = ''
 	svg_paths = ''
 	# svg_image = UTracer.put_image(image)
-	# svg_body = UTracer.trace(image, smooth_range)
 	svg_paths = UTracer.vectorize(image)
 	svg_code = SVG.svg_open(image.width, image.height) + SVG.metadata() + svg_image + svg_paths + SVG.svg_close()
 	end_time = time.time()

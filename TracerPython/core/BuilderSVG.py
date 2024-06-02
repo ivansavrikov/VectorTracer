@@ -36,7 +36,7 @@ class BuilderSVG:
 		return (
 			f'\n\t<g\n'
 			f'\t\tfill-opacity="1"\n'
-			f'\t\tstroke-linejoin="mitter"\n'
+			f'\t\tstroke-linejoin="round"\n'
 			f'\t\tstroke-opacity="1"\n'
 			f'\t\tstroke-width="1">\n\n'
 		)
@@ -57,16 +57,16 @@ class BuilderSVG:
 		if is_closed: return 'Z"/>\n\n'
 		else: return '"/>\n\n'
 
-	def add_circle(center: Point, radius=0.3, fill="red"):
+	def add_circle(center: Point, radius=0.3, fill="red", stroke='none', stroke_width=0):
 		return (
 			f'\t\t<circle '
 			f'cx="{center.x}" '
 			f'cy="{center.y}" '
 			f'r="{radius}" '
 			f'fill="{fill}" '
-			f'fill-opacity="0.8" '
-			f'stroke="none" '
-			f'stroke-width="0"/>\n'
+			f'fill-opacity="0.7" '
+			f'stroke="{stroke}" '
+			f'stroke-width="{stroke_width}"/>\n'
 		)
 
 	def fragments_group_open():
@@ -86,7 +86,7 @@ class BuilderSVG:
 			f'width="{width}" '
 			f'height="{height}" '
 			f'stroke="{stroke}" '
-			f'stroke-width="0.1" '
+			f'stroke-width="0.01" '
 			f'fill="{fill}"/>\n'
 		)
 
@@ -113,6 +113,7 @@ class BuilderSVG:
 	def add_image(image_data: str, width, height, pos=Point(0,0)):
 		return (
 			f'\n\t<image '
+			f'opacity="0.7" '
 			f'x="{pos.x-0.5}" '
 			f'y="{pos.y-0.5}" '
 			f'width="{width}" '

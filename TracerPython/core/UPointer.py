@@ -1,6 +1,7 @@
 from PIL import Image
 from core.Point import Point
 from core.DirectionEnum import Direction
+import numpy as np
 
 class UPointer:
 	'''фактически Y растет вниз, X вправо, но названия даны для человеческого представления'''
@@ -88,9 +89,17 @@ class UPointer:
 	def calc_arrow(self, start_arrow=Direction.LEFT):
 		degrees = self.degrees_from_arrow(start_arrow) % 360
 		for _ in range(0, 4):
-			if not self.pixel_is_possible(self.point_from_degress(self.pos, degrees)):
+			point = self.point_from_degress(self.pos, degrees)
+			if not self.pixel_is_possible(point):
 				return self.arrow_from_degrees(degrees + 90)
 			degrees = (degrees + 90) % 360
+
+		for _ in range(0, 4):
+			point = self.point_from_degress(self.pos, degrees)
+			if self.pixels[point.x, point.y] == False:
+				return self.arrow_from_degrees(degrees + 90)
+			degrees = (degrees + 90) % 360
+		
 		# print(f"impossible calc arrow, start_arrow = {start_arrow.name}")
 		raise Exception(f"impossible calc arrow, start_arrow = {start_arrow.name}, color = {self.color}, pos = {self.pos}")
 	
@@ -106,13 +115,17 @@ class UPointer:
 	def calc_possible_position(self, arrow: Direction) -> tuple[Point, Direction]:
 		degrees = (self.degrees_from_arrow(arrow) - 90 + 360) % 360
 		for _ in range(0, 8):
-			if self.pixel_is_possible(self.point_from_degress(self.pos, degrees)):
-				return (self.point_from_degress(self.pos, degrees), self.arrow_from_degrees(degrees))
+			point = self.point_from_degress(self.pos, degrees)
+			if self.pixel_is_possible(point) and self.pixels[point.x, point.y] and self.pixel_is_contour(point):
+			# if self.pixel_is_possible(point):
+				return (point, self.arrow_from_degrees(degrees))
 			degrees = (degrees + 45) % 360
 		return (self.pos,  arrow)
 
 	def __init__(self, image: Image):
 		self.image: Image = image
+		width, height = image.size
+		self.pixels = np.ones((width, height), dtype=bool)
 		self.pos: Point = Point(0, 0)
 		self.arrow: Direction = Direction.NONE
 		self.arrow_is_changed: bool = False
