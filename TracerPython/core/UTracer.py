@@ -43,51 +43,56 @@ class UTracer:
 		temp2 = UTracer.calc_point(p2, p3, p4)
 
 		c2 = temp2*(1-tension) + p3*tension
-		return p1, c1.round(decimals=0), c2.round(decimals=0), p4
+		return p1, c1.round(decimals=1), c2.round(decimals=1), p4
 
-	def vectorize(image: Image):
+	def vectorize(image: Image, smooth_range: int):
 		svg_paths: StringIO = StringIO()
 		svg_paths.write(SVG.paths_group_open())
 		pointer = UPointer(image)
 		width, height = image.size
 
 		start_points = []
+		svg_points_count = 0
 		path_index = 0
 		for y in range(height):
 			for x in range(width):
 				if not pointer.pixels[x, y]: continue
 				start_position = Point(x, y)
-				start_position_2 = Point(x, y)
+				closing_position = start_position
 				pointer.color = pointer.get_color(start_position)
 
-				if pointer.pixel_is_possible(start_position) and pointer.pixel_is_contour(start_position):
-					blocked_pixels = []
-					blocked_pixels.append((x, y))
-					
-					pointer.pos = start_position
-					pointer.arrow = pointer.calc_arrow()
+				if pointer.pixel_is_contour(start_position):
+					pointer.set_start_position(start_position)
 
-					arrows = []
-
-					path = []
-					
-					hex = '#{:02x}{:02x}{:02x}'.format(*pointer.color)
-
-					path.append(SVG.move_to(start_position))
+					path_data = []
+					path_data.append(SVG.move_to(start_position))
+					path_points = []
+					path_points.append(start_position)
+					prev_corner = start_position
 					path_points_count = 1
+
+					positions_to_block = []
+					positions_to_block.append((start_position.x, start_position.y))
+
+					positions_arrows = []
+					# positions_arrows.append(SVG.add_fragment(pointer.pos, 1, 1, stroke=SVG.get_hex_code(*pointer.color)))
+					# positions_arrows.append(SVG.add_text(Point(pointer.pos.x-0.15, pointer.pos.y+0.15), ArrowSymbols.ARROWS[pointer.arrow.value], color='red'))
+
+					is_error_path = False
 					i = 0
 					while True:
 						prev_position = pointer.pos
 						possible_position, possible_arrow = pointer.calc_possible_position(pointer.arrow)
 
 						if i >= 1_000_000 or path_points_count >= 100_000:
-							hex = 'red'
-							print(f'infinity exception: path={path_index} loops={i} path_points={path_points_count} st1={start_position} st2={start_position_2} color={pointer.color}')
+							is_error_path = True
+							print(f'infinity exception: path={path_index} loops={i} path_points={path_points_count} st1={start_position} st2={closing_position} color={pointer.color}')
+							# raise Exception(f"error path {path_index}")
 							break
 
-						start_is_offset = False
+						is_replace_closing_position = False
 						recalc_arrow = possible_arrow
-						while True:
+						while True: #TODO: возможно можно упростить
 							if possible_position.x != pointer.pos.x and possible_position.y != pointer.pos.y:
 								t1 = Point(possible_position.x, pointer.pos.y)
 								t2 = Point(pointer.pos.x, possible_position.y)
@@ -96,69 +101,97 @@ class UTracer:
 									recalc_arrow = pointer.calc_arrow(recalc_arrow)
 									possible_position, recalc_arrow = pointer.calc_possible_position(recalc_arrow)
 									if recalc_arrow == possible_arrow:
-										start_is_offset = True
+										is_replace_closing_position = True
 										break
 								else: break
 							else: break
 
-						if pointer.pixels[possible_position.x, possible_position.y]:
+						if pointer.position_is_available(possible_position):
 							pointer.pos = possible_position
-							arrows.append(SVG.add_fragment(pointer.pos, 1, 1, stroke=hex))
-							arrows.append(SVG.add_text(Point(pointer.pos.x-0.15, pointer.pos.y+0.15), ArrowSymbols.ARROWS[pointer.arrow.value], color=hex))
-							blocked_pixels.append((pointer.pos.x, pointer.pos.y))
+							pointer.moves_count += 1
+							# positions_arrows.append(SVG.add_fragment(pointer.pos, 1, 1, stroke=SVG.get_hex_code(*pointer.color)))
+							# positions_arrows.append(SVG.add_text(Point(pointer.pos.x-0.15, pointer.pos.y+0.15), ArrowSymbols.ARROWS[pointer.arrow.value], color=SVG.get_hex_code(*pointer.color)))
+							positions_to_block.append((pointer.pos.x, pointer.pos.y))
 							pointer.rotate_arrow(recalc_arrow)
 
 							if pointer.arrow_is_changed and prev_position != start_position:
-								path.append(SVG.line_to(prev_position))
-								path_points_count += 1
-								if path_points_count % 10 == 0:
-									path.append('\n\t\t\t\t')
+								if (
+									abs(prev_position.x - prev_corner.x) >= smooth_range or
+									abs(prev_position.y - prev_corner.y) >= smooth_range
+								):
+									# path_data.append(SVG.line_to(prev_position))
+									path_points.append(prev_position)
+									
+									if (len(path_points)-1) % 3 == 0 and len(path_points) >= 4:
+										p0, c1, c2, p1 = UTracer.get_control_points(path_points[-4], path_points[-3], path_points[-2], path_points[-1])
+										path_data.append(SVG.curve_to(p0, c1, c2, p1))
+										
+									path_points_count += 1
+									if path_points_count % 10 == 0:
+										path_data.append('\n\t\t\t\t')
+									prev_corner = prev_position
 
 							if pointer.pos == start_position:
 								break
-							if pointer.pos == start_position_2:
-								# hex='blue'
-								path.append(SVG.line_to(pointer.pos))
+							
+							if pointer.pos == closing_position:
+								path_data.append(SVG.line_to(pointer.pos))
+								path_points.append(pointer.pos)
 								path_points_count += 1
 								break
-							if start_is_offset: start_position_2 = pointer.pos
-							
+							if is_replace_closing_position:
+								closing_position = pointer.pos
+				
 						else:
-							hex = 'red'
-							print(f'break {path_index}')
-							path.append(SVG.line_to(pointer.pos))
+							is_error_path = True
+							# path_data.append(SVG.line_to(pointer.pos))
+							path_points.append(pointer.pos)
 							path_points_count += 1
-							path = []
-							path_points_count = 0
-							break
+							raise Exception(f"error path {path_index}")
 
 						i += 1
 					
-					for p in blocked_pixels:
+					for p in positions_to_block:
 						xp, yp = p
 						pointer.pixels[xp, yp] = False
 
-					if path_points_count >= 2:
-						pass
-						if path_index == path_index:
-							# svg_paths.write(SVG.path_open(path_index, fill='none', stroke=hex))			
-							svg_paths.write(SVG.path_open(path_index, fill=hex, stroke=hex))
-							svg_paths.write("".join(path))
-							is_error_path = hex == 'red' or hex == 'blue'
-							if is_error_path: 
-								start_points.append(SVG.add_circle(start_position_2, radius=0.5, fill='green', stroke='red', stroke_width=0.05))
-								start_points.append(SVG.add_text(Point(start_position_2.x-0.15, start_position_2.y+0.15), path_index, color='darkred'))
-							
-							svg_paths.write(SVG.path_close(not is_error_path))
-							# svg_paths.write("".join(arrows))
-							start_points.append(SVG.add_circle(start_position, radius=0.5, fill=hex, stroke='red', stroke_width=0.05))
-							start_points.append(SVG.add_text(Point(start_position.x-0.15, start_position.y+0.15), path_index, color='darkred'))
-						path_index += 1
+					if path_points_count >= 3:
+
+						remains = len(path_points) % 3
+						
+						if remains == 1: #FIXME: добавить расчет точек
+							path_points.append(path_points[-1])
+							path_points.append(path_points[0])
+
+						if remains == 2: #FIXME: добавить расчет точки
+							path_points.append(path_points[-1])
+						
+						remains = len(path_points) % 3
+						if remains == 0:
+							p0, c1, c2, p1 = UTracer.get_control_points(path_points[-3], path_points[-2], path_points[-1], path_points[0])
+							path_data.append(SVG.curve_to(p0, c1, c2, p1))
+
+						hex = SVG.get_hex_code(*pointer.color)
+						# svg_paths.write(SVG.path_open(path_index, fill='none', stroke=hex))		
+						svg_paths.write(SVG.path_open(path_index, fill=hex, stroke=hex))
+						svg_paths.write("".join(path_data))
+						if is_error_path: 
+							start_points.append(SVG.add_circle(closing_position, radius=0.5, fill='green', stroke='red', stroke_width=0.05))
+							start_points.append(SVG.add_text(Point(closing_position.x-0.15, closing_position.y+0.15), path_index, color='darkred'))
+						
+						svg_paths.write(SVG.path_close(is_closed=not is_error_path))
+						# svg_paths.write("".join(positions_arrows))
+						# start_points.append(SVG.add_circle(start_position, radius=0.5, fill=hex, stroke='red', stroke_width=0.05))
+						# start_points.append(SVG.add_text(Point(start_position.x-0.15, start_position.y+0.15), path_index, color='darkred'))
+
+					path_index += 1
+					svg_points_count += len(path_data)
 		
 		svg_paths.write(SVG.group_close())
 		paths = svg_paths.getvalue()
 		svg_paths.close()
 		# paths += ''.join(start_points)
+		print(f'getting pixels = {pointer.getting_pixels_count:_}\npointer set position count = {pointer.moves_count:_}\ncalced points count={svg_points_count:_}\nratio = {pointer.getting_pixels_count/pointer.moves_count}')
 		return paths
 
 	def put_image(image: Image, pos=Point(0,0)):

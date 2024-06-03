@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 from io import BytesIO
 from fastapi.responses import StreamingResponse
+from core.UPointer import UPointer
 from core.UTracer import UTracer
 from core.ColorClusterizer import quantize_colors
 import time
@@ -27,6 +28,7 @@ app.add_middleware(
 )
 
 
+
 @app.post("/tracer/")
 async def trace(file: UploadFile = File(...), num_colors: int = Form(...), smooth_range: int = Form(...)):
 	contents = await file.read()
@@ -45,7 +47,7 @@ async def trace(file: UploadFile = File(...), num_colors: int = Form(...), smoot
 	svg_image = ''
 	svg_paths = ''
 	# svg_image = UTracer.put_image(image)
-	svg_paths = UTracer.vectorize(image)
+	svg_paths = UTracer.vectorize(image, smooth_range)
 	svg_code = SVG.svg_open(image.width, image.height) + SVG.metadata() + svg_image + svg_paths + SVG.svg_close()
 	end_time = time.time()
 	tracing_time = end_time - start_time
@@ -64,3 +66,36 @@ async def trace(file: UploadFile = File(...), num_colors: int = Form(...), smoot
 	print(f"SVG ({(result_size/(1024*1024)):.2f} MB or {result_size} bytes)")
 
 	return StreamingResponse(svg_data, media_type="image/svg+xml", headers={"Content-Disposition": f"attachment; filename={file.filename}.svg"})
+
+
+# @app.post("/tracer/")
+async def trace(file: UploadFile = File(...), num_colors: int = Form(...), smooth_range: int = Form(...)):
+	contents = await file.read()
+	image_bytes = BytesIO(contents)
+	image = Image.open(image_bytes)
+	image = ImagePreparer.process_image(image)
+	
+	
+	image = quantize_colors(image, num_colors)
+	pointer = UPointer(image)
+	w, h = image.size
+
+
+	start_time = time.time()
+	for y in range(h):
+		for x in range(w):
+			color = pointer.get_color(Point(x, y))
+	end_time = time.time()
+	perform_time = end_time - start_time
+	print(f"\n{C.BOLD}PILLOW{C.END}:\t\t{perform_time:.3f} sec ({perform_time/60:.1f} min)")
+
+
+	start_time = time.time()
+	for y in range(h):
+		for x in range(w):
+			color = pointer.get_color_numpy(Point(x, y))
+	end_time = time.time()
+	perform_time = end_time - start_time
+	print(f"\n{C.BOLD}NUMPY{C.END}:\t\t{perform_time:.3f} sec ({perform_time/60:.1f} min)")
+
+	print(f'total={w * h} getting={pointer.getting_pixels_count}')

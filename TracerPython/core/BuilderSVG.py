@@ -36,9 +36,9 @@ class BuilderSVG:
 		return (
 			f'\n\t<g\n'
 			f'\t\tfill-opacity="1"\n'
-			f'\t\tstroke-linejoin="round"\n'
+			f'\t\tstroke-linejoin="mitter"\n'
 			f'\t\tstroke-opacity="1"\n'
-			f'\t\tstroke-width="1">\n\n'
+			f'\t\tstroke-width="1.1">\n\n'
 		)
 
 	def path_open(index='-1', fill='none', stroke='black', opacity='1'):
@@ -91,7 +91,8 @@ class BuilderSVG:
 		)
 
 	def curve_to(p0, c1, c2, p1):
-		return f"C {c1.x} {c1.y} {c2.x} {c2.y} {p1.x} {p1.y} "
+		# return f"C {c1.x:.0f} {c1.y:.0f} {c2.x:.0f} {c2.y:.0f} {p1.x} {p1.y} "
+		return f"C {BuilderSVG.format_number(c1.x)} {BuilderSVG.format_number(c1.y)} {BuilderSVG.format_number(c2.x)} {BuilderSVG.format_number(c2.y)} {p1.x} {p1.y} "
 
 	def add_quadratic_bezier(start: Point, control: Point, end: Point):
 		return f"Q {control.x} {control.y} {end.x} {end.y} "
@@ -124,3 +125,9 @@ class BuilderSVG:
 
 	def svg_close():
 		return '\n</svg>'
+	
+	def get_hex_code(r, g, b) -> str:
+		return f'#{r:02x}{g:02x}{b:02x}'
+	
+	def format_number(value):
+		return f"{int(value)}" if value.is_integer() else f"{value}"

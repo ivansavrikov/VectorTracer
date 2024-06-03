@@ -7,12 +7,17 @@ class UPointer:
 	'''фактически Y растет вниз, X вправо, но названия даны для человеческого представления'''
 
 	def pixel_is_inside_image(self, point: Point) -> bool:
-		width, height = self.image.size
-		if (0 <= point.x < width) and (0 <= point.y < height): #Пиксель в пределах изображения
+		if (0 <= point.x < self.image.width) and (0 <= point.y < self.image.height):
 			return True
 		else: return False
 
+	def position_is_available(self, position: Point) -> bool:
+		if self.pixel_is_inside_image(position):
+			return self.pixels[position.x, position.y]
+		else: return False #TODO: ПРОВЕРИТЬ НЕ ПРИВОДИТ ЛИ ЭТО К ОШИБКАМ
+
 	def get_color(self, point: Point):
+		self.getting_pixels_count += 1
 		if self.pixel_is_inside_image(point):
 			return self.image.getpixel((point.x, point.y))
 
@@ -90,34 +95,41 @@ class UPointer:
 		degrees = self.degrees_from_arrow(start_arrow) % 360
 		for _ in range(0, 4):
 			point = self.point_from_degress(self.pos, degrees)
-			if not self.pixel_is_possible(point):
+			is_inside, is_same_color = self.check_inside_and_color(point)
+			if is_inside and not is_same_color:
 				return self.arrow_from_degrees(degrees + 90)
 			degrees = (degrees + 90) % 360
 
 		for _ in range(0, 4):
 			point = self.point_from_degress(self.pos, degrees)
-			if self.pixels[point.x, point.y] == False:
+			if not self.position_is_available(point):
 				return self.arrow_from_degrees(degrees + 90)
 			degrees = (degrees + 90) % 360
 		
 		# print(f"impossible calc arrow, start_arrow = {start_arrow.name}")
 		raise Exception(f"impossible calc arrow, start_arrow = {start_arrow.name}, color = {self.color}, pos = {self.pos}")
 	
-	def pixel_is_contour(self, point: Point) -> bool:		
+	def pixel_is_contour(self, point: Point) -> bool:
+		is_inside, is_same_color = self.check_inside_and_color(point)
+		if not is_inside or not is_same_color: return False
+
 		degrees = Direction.LEFT.value
 		for _ in range(4):
 			is_inside, is_same_color = self.check_inside_and_color(self.point_from_degress(point, degrees))
-			if not is_inside or not is_same_color: return True
-			# if is_inside and not is_same_color: return True
+			# if not is_inside or not is_same_color: return True
+			if is_inside and not is_same_color: return True
 			degrees += 90
 		return False
+
+	def set_start_position(self, point: Point):
+		self.pos = point
+		self.arrow = self.calc_arrow()
 
 	def calc_possible_position(self, arrow: Direction) -> tuple[Point, Direction]:
 		degrees = (self.degrees_from_arrow(arrow) - 90 + 360) % 360
 		for _ in range(0, 8):
 			point = self.point_from_degress(self.pos, degrees)
-			if self.pixel_is_possible(point) and self.pixels[point.x, point.y] and self.pixel_is_contour(point):
-			# if self.pixel_is_possible(point):
+			if self.position_is_available(point) and self.pixel_is_contour(point):
 				return (point, self.arrow_from_degrees(degrees))
 			degrees = (degrees + 45) % 360
 		return (self.pos,  arrow)
@@ -129,5 +141,7 @@ class UPointer:
 		self.pos: Point = Point(0, 0)
 		self.arrow: Direction = Direction.NONE
 		self.arrow_is_changed: bool = False
-		self.moves_count: int = 0
 		self.color: tuple = (0,0,0)
+
+		self.moves_count: int = 0
+		self.getting_pixels_count = 0
