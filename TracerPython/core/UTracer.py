@@ -32,6 +32,11 @@ class UTracer:
 
 		return bisector_normalized
 
+	def calc_control_point(p1, p2, p3, tension=2.0):
+		temp1 = UTracer.calc_point(p1, p2, p3)
+		c1 = temp1*(1-tension) + p2*tension
+		return p1, c1.round(decimals=1), p3
+
 	def get_control_points(p1, p2, p3, p4, tension=2.0):
 		# temp1 = (p3+p1)/2
 		# temp1 = p2 + UTracer.bisector_vector(p1, p2, p3)
@@ -159,13 +164,13 @@ class UTracer:
 
 						remains = len(path_points) % 3
 						
-						if remains == 1: #FIXME: добавить расчет точек
-							path_points.append(path_points[-1])
-							path_points.append(path_points[0])
+						if remains == 1:
+							path_data.append(SVG.line_to(path_points[0]))
 
-						if remains == 2: #FIXME: добавить расчет точки
-							path_points.append(path_points[-1])
-						
+						if remains == 2:
+							p0, c1, p1 = UTracer.calc_control_point(path_points[-2], path_points[-1], path_points[0])
+							path_data.append(SVG.add_quadratic_bezier(p0, c1, p1))
+							
 						remains = len(path_points) % 3
 						if remains == 0:
 							p0, c1, c2, p1 = UTracer.get_control_points(path_points[-3], path_points[-2], path_points[-1], path_points[0])
