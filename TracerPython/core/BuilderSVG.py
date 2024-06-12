@@ -9,6 +9,7 @@ class BuilderSVG:
 			f'\twidth="{width}"\n'
 			f'\theight="{height}"\n'
 			f'\tviewBox="-1 -1 {width+1} {height+1}"\n'
+			# f'\tviewBox="0 0 {width+1} {height+1}"\n'
 			f'\txmlns="http://www.w3.org/2000/svg"\n'
 			f'\txmlns:xlink="http://www.w3.org/1999/xlink">\n'
 		)
@@ -16,7 +17,7 @@ class BuilderSVG:
 	def metadata():
 		return (
 			f'\n\t<metadata>\n'
-			f'\tCreated by SpiderTracer, developed by Ivan Savrikov 2023-{date.today().year}\n'
+			f'\tCreated by SpiderTracer 1.0, developed by Ivan Savrikov 2023-{date.today().year}\n'
 			f'\t</metadata>\n'
 		)
 
@@ -38,7 +39,7 @@ class BuilderSVG:
 			f'\t\tfill-opacity="1"\n'
 			f'\t\tstroke-linejoin="mitter"\n'
 			f'\t\tstroke-opacity="1"\n'
-			f'\t\tstroke-width="1.1">\n\n'
+			f'\t\tstroke-width="1">\n\n'
 		)
 
 	def path_open(index='-1', fill='none', stroke='black', opacity='1'):
@@ -114,7 +115,7 @@ class BuilderSVG:
 	def add_image(image_data: str, width, height, pos=Point(0,0)):
 		return (
 			f'\n\t<image '
-			f'opacity="0.7" '
+			f'opacity="0.5" '
 			f'x="{pos.x-0.5}" '
 			f'y="{pos.y-0.5}" '
 			f'width="{width}" '

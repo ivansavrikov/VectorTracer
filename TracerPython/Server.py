@@ -11,6 +11,8 @@ from core.BuilderSVG import BuilderSVG as SVG
 from core.Console import Console as C
 from core.Point import Point
 from core.ImagePreparer import ImagePreparer
+from core.PixelRecolorer import recolor_image
+import json
 import io
 #uvicorn Server:app --reload
 app = FastAPI()
@@ -27,17 +29,37 @@ app.add_middleware(
 	allow_headers=["*"],
 )
 
+def hex_to_rgb(hex):
+    # Удаляем символ '#' в начале, если он есть
+    hex = hex.lstrip('#')
 
+    # Если hex имеет 3 символа, преобразуем его в 6 символов (например, 'abc' -> 'aabbcc')
+    if len(hex) == 3:
+        hex = ''.join([char*2 for char in hex])
+
+    # Разбиваем hex на компоненты R, G и B
+    r = int(hex[0:2], 16)
+    g = int(hex[2:4], 16)
+    b = int(hex[4:6], 16)
+
+    # Возвращаем кортеж RGB
+    return (r, g, b)
 
 @app.post("/tracer/")
-async def trace(file: UploadFile = File(...), num_colors: int = Form(...), smooth_range: int = Form(...)):
+async def trace(file: UploadFile = File(...), num_colors: int = Form(...), colors: str = Form(...), smooth_range: int = Form(...)):
 	contents = await file.read()
 	image_bytes = BytesIO(contents)
 	image = Image.open(image_bytes)
 	image = ImagePreparer.process_image(image)
 	
 	start_time = time.time()
-	image = quantize_colors(image, num_colors)
+	recolor_colors = json.loads(colors)
+	temp = []
+	for color in recolor_colors:
+		temp.append(hex_to_rgb(color))
+	image = recolor_image(image, temp)
+	num_colors = len(temp)
+	# image = quantize_colors(image, num_colors)
 	end_time = time.time()
 	clustering_time = end_time - start_time
 
