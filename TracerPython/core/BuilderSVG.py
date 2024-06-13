@@ -65,7 +65,7 @@ class BuilderSVG:
 			f'cy="{center.y}" '
 			f'r="{radius}" '
 			f'fill="{fill}" '
-			f'fill-opacity="0.7" '
+			f'fill-opacity="1" '
 			f'stroke="{stroke}" '
 			f'stroke-width="{stroke_width}"/>\n'
 		)

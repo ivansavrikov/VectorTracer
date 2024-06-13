@@ -6,7 +6,7 @@ from core.Point import Point
 from core.UPointer import UPointer
 import math
 from core.Console import Console as C
-from core.DirectionEnum import Direction, ArrowSymbols
+from core.Directions import Directions, ArrowSymbols, rotate_clockwise
 import time
 
 class UTracer:
@@ -41,13 +41,12 @@ class UTracer:
 		path_index = 0
 		for y in range(height):
 			for x in range(width):
-				if not pointer.pixels[x, y]: continue
+				if not pointer.available_positions[x, y]: continue
 				start_position = Point(x, y)
 				closing_position = start_position
-				pointer.color = pointer.get_color(start_position)
+				pointer.current_color = pointer.get_color(start_position)
 
-				# if pointer.pixel_is_contour(start_position):
-				if pointer.pixel_is_strict_contour(start_position):
+				if pointer.pixel_is_contour(start_position):
 					pointer.set_start_position(start_position)
 
 					path_data = []
@@ -67,24 +66,24 @@ class UTracer:
 					is_error_path = False
 					i = 0
 					while True:
-						prev_position = pointer.pos
-						possible_position, possible_arrow = pointer.calc_possible_position(pointer.arrow)
+						prev_position = pointer.position
+						possible_position, possible_arrow = pointer.calc_possible_position(pointer.direction)
 
 						if i >= 1_000_000 or path_points_count >= 100_000:
 							is_error_path = True
-							print(f'infinity exception: path={path_index} loops={i} path_points={path_points_count} st1={start_position} st2={closing_position} color={pointer.color}')
+							print(f'infinity exception: path={path_index} loops={i} path_points={path_points_count} st1={start_position} st2={closing_position} color={pointer.current_color}')
 							# raise Exception(f"error path {path_index}")
 							break
 
 						is_replace_closing_position = False
 						recalc_arrow = possible_arrow
 						while True: #TODO: возможно можно упростить
-							if possible_position.x != pointer.pos.x and possible_position.y != pointer.pos.y:
-								t1 = Point(possible_position.x, pointer.pos.y)
-								t2 = Point(pointer.pos.x, possible_position.y)
-								if pointer.get_color(t1) == pointer.get_color(t2) and pointer.get_color(pointer.pos) != pointer.get_color(t1):
-									if recalc_arrow.value % 90 != 0: recalc_arrow = pointer.arrow_from_degrees(recalc_arrow.value + 45)
-									recalc_arrow = pointer.calc_arrow(recalc_arrow)
+							if possible_position.x != pointer.position.x and possible_position.y != pointer.position.y:
+								t1 = Point(possible_position.x, pointer.position.y)
+								t2 = Point(pointer.position.x, possible_position.y)
+								if pointer.get_color(t1) == pointer.get_color(t2) and pointer.get_color(pointer.position) != pointer.get_color(t1):
+									if recalc_arrow.value % 2 != 0: recalc_arrow = Directions(rotate_clockwise(recalc_arrow, 1))
+									recalc_arrow = pointer.calc_direction(recalc_arrow)
 									possible_position, recalc_arrow = pointer.calc_possible_position(recalc_arrow)
 									if recalc_arrow == possible_arrow:
 										is_replace_closing_position = True
@@ -93,51 +92,51 @@ class UTracer:
 							else: break
 
 						if pointer.position_is_available(possible_position):
-							pointer.pos = possible_position
+							pointer.position = possible_position
+							pointer.rotate_direction(recalc_arrow)
 							pointer.moves_count += 1
-							# positions_arrows.append(SVG.add_fragment(pointer.pos, 1, 1, stroke=SVG.get_hex_code(*pointer.color)))
-							# positions_arrows.append(SVG.add_text(Point(pointer.pos.x-0.15, pointer.pos.y+0.15), ArrowSymbols.ARROWS[pointer.arrow.value], color=SVG.get_hex_code(*pointer.color)))
-							positions_to_block.append((pointer.pos.x, pointer.pos.y))
-							pointer.rotate_arrow(recalc_arrow)
-
-							if pointer.arrow_is_changed and prev_position != start_position:
+							# positions_arrows.append(SVG.add_fragment(pointer.position, 1, 1, stroke=SVG.get_hex_code(*pointer.current_color)))
+							# positions_arrows.append(SVG.add_text(Point(pointer.position.x-0.15, pointer.position.y+0.15), ArrowSymbols.ARROWS[pointer.direction.value], color=SVG.get_hex_code(*pointer.current_color)))
+							positions_to_block.append((pointer.position.x, pointer.position.y))
+							
+							if pointer.direction_is_changed and prev_position != start_position:
 								if (
 									abs(prev_position.x - prev_corner.x) >= smooth_range or
 									abs(prev_position.y - prev_corner.y) >= smooth_range
 								):
-									# path_data.append(SVG.line_to(prev_position))
+									path_data.append(SVG.line_to(prev_position))
 									path_points.append(prev_position)
 									
-									if (len(path_points)-1) % 3 == 0 and len(path_points) >= 4:
-										angle_between_1_3 = UTracer.calc_angle(path_points[-4], path_points[-3], path_points[-2])
-										angle_between_2_4 = UTracer.calc_angle(path_points[-3], path_points[-2], path_points[-1])
-										if angle_between_1_3 != 90 and angle_between_2_4 != 90:
-											p0, c1, c2, p1 = UTracer.get_curve_points(path_points[-4], path_points[-3], path_points[-2], path_points[-1])
-											path_data.append(SVG.curve_to(p0, c1, c2, p1))
-										elif angle_between_1_3 == 90 or angle_between_2_4 == 90:
-											for index in range(4, 0, -1):
-												path_data.append(SVG.line_to(path_points[-index]))
+									# if (len(path_points)-1) % 3 == 0 and len(path_points) >= 4:
+									# 	angle_between_1_3 = UTracer.calc_angle(path_points[-4], path_points[-3], path_points[-2])
+									# 	angle_between_2_4 = UTracer.calc_angle(path_points[-3], path_points[-2], path_points[-1])
+									# 	if angle_between_1_3 != 90 and angle_between_2_4 != 90:
+									# 		p0, c1, c2, p1 = UTracer.get_curve_points(path_points[-4], path_points[-3], path_points[-2], path_points[-1])
+									# 		path_data.append(SVG.curve_to(p0, c1, c2, p1))
+									# 	elif angle_between_1_3 == 90 or angle_between_2_4 == 90:
+									# 		for index in range(4, 0, -1):
+									# 			path_data.append(SVG.line_to(path_points[-index]))
 
 									path_points_count += 1
 									if path_points_count % 10 == 0:
 										path_data.append('\n\t\t\t\t')
 									prev_corner = prev_position
 
-							if pointer.pos == start_position:
+							if pointer.position == start_position:
 								break
 							
-							if pointer.pos == closing_position:
-								path_data.append(SVG.line_to(pointer.pos))
-								# path_points.append(pointer.pos)
+							if pointer.position == closing_position:
+								# path_data.append(SVG.line_to(pointer.position))
+								path_points.append(pointer.position)
 								path_points_count += 1
 								break
 							if is_replace_closing_position:
-								closing_position = pointer.pos
+								closing_position = pointer.position
 				
 						else:
 							is_error_path = True
 							# path_data.append(SVG.line_to(pointer.pos))
-							path_points.append(pointer.pos)
+							path_points.append(pointer.position)
 							path_points_count += 1
 							raise Exception(f"error path {path_index}")
 
@@ -145,23 +144,29 @@ class UTracer:
 					
 					for p in positions_to_block:
 						xp, yp = p
-						pointer.pixels[xp, yp] = False
+						pointer.available_positions[xp, yp] = False
 
-					if path_points_count >= 3:
+					if path_points_count >= 1:
+						hex = SVG.get_hex_code(*pointer.current_color)
 
-						remains = len(path_points) % 3
-						if remains == 1:
-							path_data.append(SVG.line_to(path_points[0]))
-						if remains == 2:
-							c1 = UTracer.calc_control_point(path_points[-2], path_points[-1], path_points[0])
-							path_data.append(SVG.add_quadratic_bezier(path_points[-2], c1, path_points[0]))
-						remains = len(path_points) % 3
-						if remains == 0: #FIXME: не учитывается 90 угол
-							p0, c1, c2, p1 = UTracer.get_curve_points(path_points[-3], path_points[-2], path_points[-1], path_points[0])
-							path_data.append(SVG.curve_to(p0, c1, c2, p1))
+						if len(path_points) == 1:
+							svg_paths.write(SVG.add_circle(path_points[0], radius=0.8, fill=hex, stroke=hex, stroke_width=0) + '\n')
+							continue
 
-						hex = SVG.get_hex_code(*pointer.color)
-						# svg_paths.write(SVG.path_open(path_index, fill='none', stroke='red'))		
+						# remains = len(path_points) % 3
+						# if remains == 1:
+						# 	path_data.append(SVG.line_to(path_points[-1]))
+
+						# if remains == 2:
+						# 	c1 = UTracer.calc_control_point(path_points[-2], path_points[-1], path_points[0])
+						# 	path_data.append(SVG.add_quadratic_bezier(path_points[-2], c1, path_points[0]))
+						# remains = len(path_points) % 3
+						# if remains == 0: #FIXME: не учитывается 90 угол
+						# 	p0, c1, c2, p1 = UTracer.get_curve_points(path_points[-3], path_points[-2], path_points[-1], path_points[0])
+						# 	path_data.append(SVG.curve_to(p0, c1, c2, p1))
+
+						
+						# svg_paths.write(SVG.path_open(path_index, fill='none', stroke='red'))	
 						svg_paths.write(SVG.path_open(path_index, fill=hex, stroke=hex))
 						svg_paths.write("".join(path_data))
 						if is_error_path: 
