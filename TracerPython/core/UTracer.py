@@ -78,19 +78,19 @@ class UTracer:
 
 						is_replace_closing_position = False
 						recalc_arrow = possible_arrow
-						# while True: #TODO: возможно можно упростить
-						# 	if possible_position.x != pointer.pos.x and possible_position.y != pointer.pos.y:
-						# 		t1 = Point(possible_position.x, pointer.pos.y)
-						# 		t2 = Point(pointer.pos.x, possible_position.y)
-						# 		if pointer.get_color(t1) == pointer.get_color(t2) and pointer.get_color(pointer.pos) != pointer.get_color(t1):
-						# 			if recalc_arrow.value % 90 != 0: recalc_arrow = pointer.arrow_from_degrees(recalc_arrow.value + 45)
-						# 			recalc_arrow = pointer.calc_arrow(recalc_arrow)
-						# 			possible_position, recalc_arrow = pointer.calc_possible_position(recalc_arrow)
-						# 			if recalc_arrow == possible_arrow:
-						# 				is_replace_closing_position = True
-						# 				break
-						# 		else: break
-						# 	else: break
+						while True: #TODO: возможно можно упростить
+							if possible_position.x != pointer.pos.x and possible_position.y != pointer.pos.y:
+								t1 = Point(possible_position.x, pointer.pos.y)
+								t2 = Point(pointer.pos.x, possible_position.y)
+								if pointer.get_color(t1) == pointer.get_color(t2) and pointer.get_color(pointer.pos) != pointer.get_color(t1):
+									if recalc_arrow.value % 90 != 0: recalc_arrow = pointer.arrow_from_degrees(recalc_arrow.value + 45)
+									recalc_arrow = pointer.calc_arrow(recalc_arrow)
+									possible_position, recalc_arrow = pointer.calc_possible_position(recalc_arrow)
+									if recalc_arrow == possible_arrow:
+										is_replace_closing_position = True
+										break
+								else: break
+							else: break
 
 						if pointer.position_is_available(possible_position):
 							pointer.pos = possible_position
@@ -111,10 +111,10 @@ class UTracer:
 									if (len(path_points)-1) % 3 == 0 and len(path_points) >= 4:
 										angle_between_1_3 = UTracer.calc_angle(path_points[-4], path_points[-3], path_points[-2])
 										angle_between_2_4 = UTracer.calc_angle(path_points[-3], path_points[-2], path_points[-1])
-										if angle_between_1_3 != 91 and angle_between_2_4 != 91:
+										if angle_between_1_3 != 90 and angle_between_2_4 != 90:
 											p0, c1, c2, p1 = UTracer.get_curve_points(path_points[-4], path_points[-3], path_points[-2], path_points[-1])
 											path_data.append(SVG.curve_to(p0, c1, c2, p1))
-										elif angle_between_1_3 == 91 or angle_between_2_4 == 91:
+										elif angle_between_1_3 == 90 or angle_between_2_4 == 90:
 											for index in range(4, 0, -1):
 												path_data.append(SVG.line_to(path_points[-index]))
 
@@ -180,7 +180,7 @@ class UTracer:
 		paths = svg_paths.getvalue()
 		svg_paths.close()
 		# paths += ''.join(start_points)
-		print(f'getting pixels = {pointer.getting_pixels_count:_}\npointer set position count = {pointer.moves_count:_}\ncalced points count={svg_points_count:_}\nratio = {pointer.getting_pixels_count/pointer.moves_count}')
+		print(f'getting pixels = {pointer.getting_pixels_count:_}\npointer set position count = {pointer.moves_count:_}\ncalced points count={svg_points_count:_}\nratio pxs/getpxs = {(pointer.getting_pixels_count/(image.width*image.height)):.2f}')
 		return paths
 
 	def put_image(image: Image, pos=Point(0,0)):

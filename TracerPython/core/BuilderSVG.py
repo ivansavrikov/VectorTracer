@@ -45,7 +45,7 @@ class BuilderSVG:
 	def path_open(index='-1', fill='none', stroke='black', opacity='1'):
 		return (
 			f'\t\t<path '
-			f'i="{index}"\n'
+			f'id="{index}"\n'
 			f'\t\t\tfill="{fill}"\n'
 			# f'\t\t\tfill-opacity="{opacity}"\n'
 			f'\t\t\tstroke="{stroke}"\n'

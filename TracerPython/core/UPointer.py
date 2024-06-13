@@ -19,7 +19,8 @@ class UPointer:
 	def get_color(self, point: Point):
 		self.getting_pixels_count += 1
 		if self.pixel_is_inside_image(point):
-			return self.image.getpixel((point.x, point.y))
+			# return self.image.getpixel((point.x, point.y))
+			return self.image_pixels[point.x, point.y]
 
 	def check_inside_and_color(self, point: Point) -> tuple[bool, bool]:
 		if self.pixel_is_inside_image(point):
@@ -107,33 +108,18 @@ class UPointer:
 			degrees = (degrees + 90) % 360
 
 	def calc_arrow(self, start_arrow=Direction.LEFT):
-		# degrees = self.degrees_from_arrow(start_arrow) % 360
-		# for _ in range(0, 4):
-		# 	point = self.point_from_degress(self.pos, degrees)
-		# 	is_inside, is_same_color = self.check_inside_and_color(point)
-		# 	if is_inside and not is_same_color:
-		# 		return self.arrow_from_degrees(degrees + 90)
-		# 	degrees = (degrees + 90) % 360
-		# for _ in range(0, 4):
-		# 	point = self.point_from_degress(self.pos, degrees)
-		# 	if not self.position_is_available(point):
-		# 		return self.arrow_from_degrees(degrees + 90)
-		# 	degrees = (degrees + 90) % 360
-		
-		degrees = self.degrees_from_arrow(start_arrow) % 360
-		for _ in range(0, 8):
+		degrees = start_arrow.value
+		for _ in range(0, 4):
 			point = self.point_from_degress(self.pos, degrees)
 			is_inside, is_same_color = self.check_inside_and_color(point)
 			if is_inside and not is_same_color:
 				return self.arrow_from_degrees(degrees + 90)
-			degrees = (degrees + 45) % 360
-		for _ in range(0, 8):
+			degrees = (degrees + 90) % 360
+		for _ in range(0, 4):
 			point = self.point_from_degress(self.pos, degrees)
 			if not self.position_is_available(point):
 				return self.arrow_from_degrees(degrees + 90)
-			degrees = (degrees + 45) % 360
-
-		# print(f"impossible calc arrow, start_arrow = {start_arrow.name}")
+			degrees = (degrees + 90) % 360
 		raise Exception(f"impossible calc arrow, start_arrow = {start_arrow.name}, color = {self.color}, pos = {self.pos}")
 
 	def pixel_is_strict_contour(self, point: Point):
@@ -148,24 +134,14 @@ class UPointer:
 		return False
 
 	def pixel_is_contour(self, point: Point) -> bool:
-		# is_inside, is_same_color = self.check_inside_and_color(point)
-		# if not is_inside or not is_same_color: return False
-		# degrees = Direction.LEFT.value
-		# for _ in range(4):
-		# 	is_inside, is_same_color = self.check_inside_and_color(self.point_from_degress(point, degrees))
-		# 	if not is_inside or not is_same_color: return True
-		# 	# if is_inside and not is_same_color: return True
-		# 	degrees += 90
-		# return False
-
 		is_inside, is_same_color = self.check_inside_and_color(point)
 		if not is_inside or not is_same_color: return False
 		degrees = Direction.LEFT.value
-		for _ in range(8):
+		for _ in range(4):
 			is_inside, is_same_color = self.check_inside_and_color(self.point_from_degress(point, degrees))
 			if not is_inside or not is_same_color: return True
 			# if is_inside and not is_same_color: return True
-			degrees += 45
+			degrees += 90
 		return False
 
 	def set_start_position(self, point: Point):
@@ -173,26 +149,29 @@ class UPointer:
 		self.arrow = self.calc_arrow_strict()
 
 	def calc_possible_position(self, arrow: Direction) -> tuple[Point, Direction]:
-		# degrees = (self.degrees_from_arrow(arrow) - 90 + 360) % 360
-		# for _ in range(0, 8):
-		# 	point = self.point_from_degress(self.pos, degrees)
-		# 	if self.position_is_available(point) and self.pixel_is_contour(point):
-		# 		return (point, self.arrow_from_degrees(degrees))
-		# 	degrees = (degrees + 45) % 360
-		# return (self.pos,  arrow)
-	
-		degrees = (self.degrees_from_arrow(arrow) - 90 + 360) % 360
-		for _ in range(0, 4):
+		degrees = (arrow.value - 90 + 360) % 360
+		for _ in range(0, 8):
 			point = self.point_from_degress(self.pos, degrees)
 			if self.position_is_available(point) and self.pixel_is_contour(point):
 				return (point, self.arrow_from_degrees(degrees))
-			degrees = (degrees + 90) % 360
+			degrees = (degrees + 45) % 360
+		return (self.pos,  arrow)
+
+	def calc_possible_position_easy(self, arrow: Direction) -> tuple[Point, Direction]:
+		degrees = (arrow.value - 90 + 360) % 360
+		for _ in range(0, 8):
+			point = self.point_from_degress(self.pos, degrees)
+			_, is_same_color = self.check_inside_and_color(point)
+			if self.position_is_available(point) and is_same_color:
+				return (point, self.arrow_from_degrees(degrees))
+			degrees = (degrees + 45) % 360
 		return (self.pos,  arrow)
 
 	def __init__(self, image: Image):
 		self.image: Image = image
 		width, height = image.size
 		self.pixels = np.ones((width, height), dtype=bool)
+		self.image_pixels = image.load()
 		self.pos: Point = Point(0, 0)
 		self.arrow: Direction = Direction.NONE
 		self.arrow_is_changed: bool = False
@@ -200,3 +179,4 @@ class UPointer:
 
 		self.moves_count: int = 0
 		self.getting_pixels_count = 0
+		self.getting_pixels_time = 0
