@@ -37,7 +37,7 @@ class BuilderSVG:
 		return (
 			f'\n\t<g\n'
 			f'\t\tfill-opacity="1"\n'
-			f'\t\tstroke-linejoin="mitter"\n'
+			f'\t\tstroke-linejoin="round"\n'
 			f'\t\tstroke-opacity="1"\n'
 			f'\t\tstroke-width="1">\n\n'
 		)

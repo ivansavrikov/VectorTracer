@@ -30,7 +30,7 @@ class UTracer:
 		c2 = UTracer.calc_control_point(p2, p3, p4)
 		return p1, c1, c2, p4
 
-	def vectorize(image: Image, smooth_range: int):
+	def vectorize(image: Image, detailing: int):
 		svg_paths: StringIO = StringIO()
 		svg_paths.write(SVG.paths_group_open())
 		pointer = UPointer(image)
@@ -101,8 +101,8 @@ class UTracer:
 							
 							if pointer.direction_is_changed and prev_position != start_position:
 								if (
-									abs(prev_position.x - prev_corner.x) >= smooth_range or
-									abs(prev_position.y - prev_corner.y) >= smooth_range
+									abs(prev_position.x - prev_corner.x) >= detailing or
+									abs(prev_position.y - prev_corner.y) >= detailing
 								):
 									path_data.append(SVG.line_to(prev_position))
 									path_points.append(prev_position)
@@ -110,10 +110,10 @@ class UTracer:
 									# if (len(path_points)-1) % 3 == 0 and len(path_points) >= 4:
 									# 	angle_between_1_3 = UTracer.calc_angle(path_points[-4], path_points[-3], path_points[-2])
 									# 	angle_between_2_4 = UTracer.calc_angle(path_points[-3], path_points[-2], path_points[-1])
-									# 	if angle_between_1_3 != 90 and angle_between_2_4 != 90:
+									# 	if angle_between_1_3 != -90 and angle_between_2_4 != -90:
 									# 		p0, c1, c2, p1 = UTracer.get_curve_points(path_points[-4], path_points[-3], path_points[-2], path_points[-1])
 									# 		path_data.append(SVG.curve_to(p0, c1, c2, p1))
-									# 	elif angle_between_1_3 == 90 or angle_between_2_4 == 90:
+									# 	elif angle_between_1_3 == -90 or angle_between_2_4 == -90:
 									# 		for index in range(4, 0, -1):
 									# 			path_data.append(SVG.line_to(path_points[-index]))
 
@@ -146,7 +146,7 @@ class UTracer:
 						xp, yp = p
 						pointer.available_positions[xp, yp] = False
 
-					if path_points_count >= 1:
+					if path_points_count >= 2:
 						hex = SVG.get_hex_code(*pointer.current_color)
 
 						if len(path_points) == 1:

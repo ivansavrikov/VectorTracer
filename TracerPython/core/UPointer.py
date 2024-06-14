@@ -61,27 +61,27 @@ class UPointer:
 			direction = rotate_clockwise(direction, 2)
 		raise Exception(f"impossible calc arrow, start_arrow = {direction.name}, color = {self.current_color}, pos = {self.position}")
 
-	def pixel_is_contour(self, point: Point) -> bool:
+	def pixel_is_contour(self, point: Point, directions_count:int=4) -> bool:
 		is_inside, is_same_color = self.check_inside_and_color(point)
 		if not is_inside or not is_same_color: return False
 		direction = Directions.LEFT
-		for _ in range(4):
+		for _ in range(directions_count):
 			is_inside, is_same_color = self.check_inside_and_color(self.point_from_direction(point, direction))
 			if not is_inside or not is_same_color: return True
-			direction = rotate_clockwise(direction, 2)
+			direction = rotate_clockwise(direction, 8/directions_count)
 		return False
 
 	def set_start_position(self, point: Point):
 		self.position = point
 		self.direction = self.calc_direction()
 
-	def calc_possible_position(self, direction: Directions) -> tuple[Point, Directions]:
+	def calc_possible_position(self, direction: Directions, directions_count=8) -> tuple[Point, Directions]:
 		direction = rotate_counter_clockwise(direction, 2)
-		for _ in range(0, 8):
+		for _ in range(0, directions_count):
 			point = self.point_from_direction(self.position, direction)
-			if self.position_is_available(point) and self.pixel_is_contour(point):
+			if self.position_is_available(point) and self.pixel_is_contour(point, 4):
 				return (point, direction)
-			direction = rotate_clockwise(direction, 1)
+			direction = rotate_clockwise(direction, 8/directions_count)
 		return (self.position,  direction)
 
 	def __init__(self, image: Image):
