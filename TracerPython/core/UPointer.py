@@ -84,6 +84,7 @@ class UPointer:
 			direction = rotate_clockwise(direction, 8/directions_count)
 		return (self.position,  direction)
 
+
 	def __init__(self, image: Image):
 		self.image: Image = image
 		self.pixels = image.load()
