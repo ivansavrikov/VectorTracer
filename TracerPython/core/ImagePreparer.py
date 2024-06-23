@@ -2,7 +2,6 @@ from PIL import Image
 import math
 from core.Point import Point
 
-#ВОЗМОЖЕН РЕФАКТОРИНГ
 class ImagePreparer:
 
     def process_image(img):

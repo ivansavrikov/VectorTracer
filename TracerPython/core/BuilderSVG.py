@@ -9,7 +9,6 @@ class BuilderSVG:
 			f'\twidth="{width}"\n'
 			f'\theight="{height}"\n'
 			f'\tviewBox="-1 -1 {width+1} {height+1}"\n'
-			# f'\tviewBox="0 0 {width+1} {height+1}"\n'
 			f'\txmlns="http://www.w3.org/2000/svg"\n'
 			f'\txmlns:xlink="http://www.w3.org/1999/xlink">\n'
 		)
@@ -33,11 +32,11 @@ class BuilderSVG:
 	def line_to(point: Point):
 		return f'L {point.x} {point.y} '
 
-	def paths_group_open():
+	def paths_group_open(stroke_line_join = 'round'):
 		return (
 			f'\n\t<g\n'
 			f'\t\tfill-opacity="1"\n'
-			f'\t\tstroke-linejoin="round"\n'
+			f'\t\tstroke-linejoin="{stroke_line_join}"\n'
 			f'\t\tstroke-opacity="1"\n'
 			f'\t\tstroke-width="1">\n\n'
 		)
@@ -47,10 +46,7 @@ class BuilderSVG:
 			f'\t\t<path '
 			f'id="{index}"\n'
 			f'\t\t\tfill="{fill}"\n'
-			# f'\t\t\tfill-opacity="{opacity}"\n'
 			f'\t\t\tstroke="{stroke}"\n'
-			# f'\t\t\tstroke-opacity="{opacity}"\n'
-			# f'\t\t\tstroke-width="1.5"\n'
 			f'\t\t\td="'
 		)
 		
@@ -92,7 +88,6 @@ class BuilderSVG:
 		)
 
 	def curve_to(p0, c1, c2, p1):
-		# return f"C {c1.x:.0f} {c1.y:.0f} {c2.x:.0f} {c2.y:.0f} {p1.x} {p1.y} "
 		return f"C {BuilderSVG.format_number(c1.x)} {BuilderSVG.format_number(c1.y)} {BuilderSVG.format_number(c2.x)} {BuilderSVG.format_number(c2.y)} {p1.x} {p1.y} "
 
 	def add_quadratic_bezier(start: Point, control: Point, end: Point):
